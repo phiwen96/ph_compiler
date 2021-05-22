@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TESTLIB_HPP
+#define TESTLIB_HPP
+#define RUN_CATCH
 
-
-//#define RUN_CATCH
+#endif

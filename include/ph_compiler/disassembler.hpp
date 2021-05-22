@@ -1,14 +1,19 @@
 #pragma once
-#include "instruction.hpp"
-#include "program.hpp"
+#include "opcode.hpp"
+#include "codefile.hpp"
+#include "version.hpp"
 
 using namespace std;
 
 
+template <typename Version>
+struct disassembler;
 
-struct disassembler 
+
+template <>
+struct disassembler <version <1, 0, 0>>
 {
-    program & code;
+    codefile <version <1, 0, 0>> & code;
 
     
     
@@ -16,8 +21,8 @@ struct disassembler
     {
         for (auto const& i : d.code)
         {
-//            os << i << endl;
             os << i << endl;
+//            os << i << endl;
         }
         return os;
     }
