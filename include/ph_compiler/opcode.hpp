@@ -71,7 +71,7 @@ enum opcode : uint_fast8_t
 //};
 
 
-ostream& operator<< (ostream& os, opcode const& o) {
+inline ostream& operator<< (ostream& os, opcode const& o) {
     switch (o)
     {
 #define X(a, b) \

@@ -1,3 +1,5 @@
+//#ifndef CODEFILE_HPP
+//#define CODEFILE_HPP
 #pragma once
 #include "constant_pool.hpp"
 #include "opcode.hpp"
@@ -239,3 +241,4 @@ private:
 
 
 
+//#endif

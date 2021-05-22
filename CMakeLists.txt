@@ -14,6 +14,7 @@ add_subdirectory (cmake/phake)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	
+	add_compile_definitions (RUN_CATCH)
 	# Let's ensure -std=g++xx instead of -std=c++xx
 	set (CMAKE_CXX_STANDARD 20)
 	set (CMAKE_CXX_STANDARD_REQUIRED ON)
