@@ -6,31 +6,11 @@ project (
 	VERSION 1.0.0
 	DESCRIPTION "Very nice project"
 	LANGUAGES CXX
-)	
+)
 
 
 add_subdirectory (cmake/phake)
-# if (NOT TARGET ph_coroutines)
-# 	add_subdirectory (dependencies/ph_coroutines)
-# endif ()
-# if (NOT TARGET ph_concepts)
-# 	add_subdirectory (dependencies/ph_concepts)
-# endif ()
-# if (NOT TARGET ph_type_list)
-# 	add_subdirectory (dependencies/ph_type_list)
-# endif ()
-# if (NOT TARGET ph_macros)
-# 	add_subdirectory (dependencies/ph_macros)
-# endif ()
-# if (NOT TARGET ph_time)
-# 	add_subdirectory (dependencies/ph_time)
-# endif ()
-# if (NOT TARGET ph_type)
-# 	add_subdirectory (dependencies/ph_type)
-# endif ()
-# if (NOT TARGET ph_memory)
-# 	add_subdirectory (dependencies/ph_memory)
-# endif ()
+
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	
@@ -51,15 +31,6 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	include (CTest)
 
 
-
-   # Docs only available if this is the main app
-   	# find_package (Doxygen)
-
-	# if (Doxygen_FOUND)
-	# 	add_subdirectory (docs)
-   	# else()
-    #  		message(STATUS "Doxygen not found, not building docs")
-   	# endif()
 
 
 endif()
