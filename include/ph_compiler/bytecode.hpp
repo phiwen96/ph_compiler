@@ -17,8 +17,6 @@ struct bytecode
     bytecode () : count {0}, capacity {8}, code {(Byte*) malloc (sizeof (Byte) * 8)} {
         if (code == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
     }
-    
-    
     auto operator += (Byte byte) -> auto& {
         
         if (capacity < count + 1)
@@ -37,6 +35,13 @@ struct bytecode
         ++ count;
         
         return *this;
+    }
+    auto begin () -> auto* {
+        return code;
+    }
+    
+    auto end () -> auto* {
+        return code + count;
     }
     
     
