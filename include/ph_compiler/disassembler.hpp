@@ -2,7 +2,7 @@
 
 using namespace std;
 
-enum struct opcode 
+struct disassembler 
 {
 
 };
