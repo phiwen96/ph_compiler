@@ -1,5 +1,5 @@
 #pragma once
-#include "operation_code.hpp"
+#include "instruction.hpp"
 #include "bytecode.hpp"
 
 using namespace std;
@@ -8,7 +8,7 @@ using namespace std;
 
 struct disassembler 
 {
-    bytecode <operation_code> & code;
+    bytecode & code;
 
     
     

@@ -10,7 +10,7 @@ using namespace std;
 /**
  one-byte operation code
  */
-enum struct operation_code : int_fast8_t
+enum instruction : uint_fast8_t
 {
 #define X(byte_code) \
     byte_code,
@@ -19,10 +19,10 @@ enum struct operation_code : int_fast8_t
 };
 
 
-inline ostream& operator<< (ostream& os, operation_code const& o) {
+inline ostream& operator<< (ostream& os, instruction const& o) {
     switch (o) {
 #define X(byte_code) \
-        case operation_code::byte_code: \
+        case instruction::byte_code: \
             os << #byte_code; \
             break;
         
