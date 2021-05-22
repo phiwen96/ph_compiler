@@ -17,10 +17,10 @@ struct instruction
     struct byte_code
     {
         int operands;
-        string str;
+        char const* str;
         
         friend ostream& operator<< (ostream& os, byte_code const& o) {
-            
+            os << o.str << "\t" << o.operands;
             return os;
         }
     };

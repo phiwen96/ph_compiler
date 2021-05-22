@@ -31,7 +31,7 @@ TEST_CASE("")
 //    b0 += instruction::CONSTANT;
 //    b0 += 4;
 //    b0 += instruction::RETURN;
-//    cout << disassembler {b0} << endl;
+    cout << disassembler {b0} << endl;
 //    cout << instruction {1} << endl;
     return 0;
     
