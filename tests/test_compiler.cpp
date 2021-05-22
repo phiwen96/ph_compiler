@@ -1,8 +1,12 @@
+#include "testlib.hpp"
+
+#ifdef RUN_CATCH
+
 #include <catch2/catch.hpp>
 #include <ph_compiler/compiler.hpp>
 #include <ph_compiler/version.hpp>
 #include <ph_compiler/scanner.hpp>
-#include <ph_compiler/bytecode.hpp>
+#include <ph_compiler/program.hpp>
 #include <ph_compiler/instruction.hpp>
 #include <ph_compiler/disassembler.hpp>
 #include <ph_compiler/value.hpp>
@@ -18,17 +22,18 @@ TEST_CASE("")
 {
     
     
-    version <1, 0, 0> v0;
     
     
     
-    bytecode b0;
+    program b0;
     b0 += instruction::RETURN;
-    b0 += instruction::RETURN;
-    b0 += instruction::CONSTANT;
-    b0 += 4;
-    b0 += instruction::RETURN;
-    cout << disassembler {b0} << endl;
+//    b0 += instruction::RETURN;
+//    b0 += instruction::CONSTANT;
+//    b0 += 4;
+//    b0 += instruction::RETURN;
+//    cout << disassembler {b0} << endl;
+//    cout << instruction {1} << endl;
+    return 0;
     
     
     //    cout << sizeof (operation_code*) << endl;
@@ -42,3 +47,4 @@ TEST_CASE("")
 
 
 
+#endif

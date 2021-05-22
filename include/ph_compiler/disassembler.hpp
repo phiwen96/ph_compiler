@@ -1,6 +1,6 @@
 #pragma once
 #include "instruction.hpp"
-#include "bytecode.hpp"
+#include "program.hpp"
 
 using namespace std;
 
@@ -8,7 +8,7 @@ using namespace std;
 
 struct disassembler 
 {
-    bytecode & code;
+    program & code;
 
     
     
@@ -16,6 +16,7 @@ struct disassembler
     {
         for (auto const& i : d.code)
         {
+//            os << i << endl;
             os << i << endl;
         }
         return os;

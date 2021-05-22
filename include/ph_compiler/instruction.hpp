@@ -3,31 +3,57 @@
 using namespace std;
 
 
-#define BYTECODES \
-    X (RETURN) \
-    X (CONSTANT)
+#define BYTE_INSTRUCTION \
+    X (RETURN, 0) \
+    X (CONSTANT, 1)
 
 /**
  one-byte operation code
  */
-enum instruction : uint_fast8_t
+//inline static constexpr char const* byte_code = #byte_code;
+
+struct instruction
 {
-#define X(byte_code) \
-    byte_code,
-    BYTECODES
+    struct byte_code
+    {
+        int operands;
+        string str;
+        
+        friend ostream& operator<< (ostream& os, byte_code const& o) {
+            
+            return os;
+        }
+    };
+#define X(code, opers, ...) \
+    inline static auto code = byte_code \
+{ \
+opers, #code\
+};
+    BYTE_INSTRUCTION
 #undef X
 };
+//enum instruction : uint_fast8_t
+//{
+//#define X(byte_code, ...) \
+//    byte_code,
+//    BYTE_INSTRUCTION
+//#undef X
+//};
 
 
 inline ostream& operator<< (ostream& os, instruction const& o) {
-    switch (o) {
-#define X(byte_code) \
-        case instruction::byte_code: \
-            os << #byte_code; \
-            break;
-        
-        BYTECODES
-#undef X
+    switch (10) {
+//#define X(byte_code, operands, ...) \
+//        case instruction::byte_code: \
+//            os << #byte_code; \
+//for (int i = 0; i < operands; ++i) \
+//{ \
+//   \
+//} \
+//            break;
+//
+//        BYTE_INSTRUCTION
+//#undef X
             
         default:
             throw runtime_error ("unknown byte-code");
@@ -36,4 +62,7 @@ inline ostream& operator<< (ostream& os, instruction const& o) {
     return os;
 }
 
-#undef BYTECODES
+#undef BYTE_INSTRUCTION
+
+
+

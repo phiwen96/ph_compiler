@@ -6,44 +6,44 @@ using namespace std;
 
 
 /**
- Bytecode is a series of instructions.
+ program is a series of instructions.
  */
 
 //template <typename Byte, typename constant_type> requires (sizeof (Byte) == sizeof (uint8_t) and is_trivially_default_constructible_v <Byte> and is_trivially_destructible_v <Byte>)
-struct bytecode
+struct program
 {
-    using value_type = instruction;
+    using instruction = instruction;
     
-    value_type * code;
+    instruction::byte_code * code;
     
     
-    constant_pool consts;
+//    constant_pool consts;
     int count;          // How many of the allocated elements are actually in use.
     int capacity;       // Number of elements in the array we have allocated.
     
-    bytecode () : count {0}, capacity {8}, code {(value_type*) malloc (sizeof (value_type) * 8)} {
+    program () : count {0}, capacity {8}, code {(instruction::byte_code *) malloc (sizeof (instruction::byte_code ) * 8)} {
         if (code == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
     }
 
     
-    auto operator += (value_type byte) -> auto& {
+    auto operator += (instruction::byte_code byte) -> auto& {
         
         if (not full ())
         {
             transform (2 * capacity);
         }
         
-        ::new (code + count) value_type {byte};
+        ::new (code + count) instruction::byte_code  {byte};
         ++ count;
         
         return *this;
     }
     
-    auto operator += (double constant) -> auto&
-    {
-        consts += constant;
-        return *this;
-    }
+//    auto operator += (double constant) -> auto&
+//    {
+//        consts += constant;
+//        return *this;
+//    }
     
     auto begin () -> auto* {
         return code;
@@ -55,7 +55,7 @@ struct bytecode
     
     
     
-    ~bytecode () {
+    ~program () {
         free (code);
     }
     
@@ -79,7 +79,7 @@ private:
         
         int old_capacity = exchange (capacity, nr_of_bytes);
         
-        code = (value_type*) realloc (code, capacity);
+        code = (instruction::byte_code *) realloc (code, capacity);
         
         if (code == nullptr)
         {

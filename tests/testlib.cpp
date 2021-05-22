@@ -1,5 +1,4 @@
-
-#define RUN_CATCH
+#include "testlib.hpp"
 
 #if defined (RUN_CATCH)
 
