@@ -19,7 +19,8 @@ inline void out (auto&&... s) {
 
 #define BYTE_INSTRUCTION \
     X (RETURN, 0) \
-    X (CONSTANT, 1)
+    X (CONSTANT, 1) \
+    X (NEGATE, 0)
 
 /**
  one-byte operation code

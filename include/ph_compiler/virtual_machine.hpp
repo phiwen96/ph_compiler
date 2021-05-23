@@ -1,5 +1,5 @@
 #pragma once
-#include "codefile.hpp"
+//#include "codefile.hpp"
 #include "opcode.hpp"
 #include "version.hpp"
 
@@ -17,96 +17,95 @@ enum struct result
 
 
 
-template <typename Version>
-struct virtual_machine;
 
 
 
-template <>
-struct virtual_machine <version <1, 0, 0>>
+#define MAX_STACK 256
+
+template <typename codefile>
+struct virtual_machine
 {
-    using version = version <1, 0, 0>;
+    using self = virtual_machine;
+    using codefile_type = codefile;
+    using opcode_type = typename codefile_type::opcode_type;
+    using constant_type = typename codefile_type::constant_type;
     
-    codefile <version> & _code_file;
-    opcode * _current_opcode;
     
     
-    virtual_machine (codefile <version> & code_file) : _code_file {code_file}
+    
+    codefile_type & _code_file;
+    opcode_type * _current_opcode;
+    
+    constant_type _stack [MAX_STACK];
+    constant_type * _stack_top;
+    
+    
+    auto reset_stack () -> void
     {
-        _current_opcode = _code_file.begin();
+        _stack_top = _stack;
     }
     
+    auto push (constant_type c) -> void
+    {
+        *_stack_top = c;
+        _stack_top++;
+    }
     
+    auto pop () -> constant_type
+    {
+        _stack_top--;
+        return *_stack_top;
+    }
+    auto top () const -> constant_type
+    {
+        return * (_stack_top - 1);
+    }
+
+    
+    
+    virtual_machine (codefile & code_file) : _code_file {code_file}
+    {
+        _current_opcode = _code_file.begin();
+        _stack_top = _stack;
+    }
+    
+   
     
     auto run () -> result
     {
+#define READ_BYTE (*_current_opcode++)
+#define READ_CONSTANT (_code_file.constants.constants [READ_BYTE])
         for (;;)
         {
-            opcode & current_opcode = * exchange (_current_opcode, _current_opcode + 1);
-            opcode & next_opcode = * _current_opcode;
             
-            switch (current_opcode)
+            uint_fast8_t instruction;
+
+            switch (instruction = READ_BYTE)
             {
                 case opcode::RETURN:
                 {
-                    cout << "return" << endl;
+                    cout << "return " << top () << endl;
+                    pop ();
+//                    cout << "return" << endl;
                     return result::INTERPRET_OK;
                 }
                     
                 case opcode::CONSTANT:
                 {
-                    cout << "constant " << _code_file.constants [next_opcode] << endl;
+                    constant_type constant = READ_CONSTANT;
+//                    constant_type constant = _code_file.constants [next_opcode];
+                    
+                    push (constant);
+                    cout << "constant " << top () << endl;
+//                    cout << "constant " << _code_file.constants [next_opcode] << endl;
                     break;
                 }
                     
-                default:
+                case opcode::NEGATE:
                 {
-                    return result::INTERPRET_COMPILE_ERROR;
-                }
-            }
-        }
-    }
-};
-
-
-template <>
-struct virtual_machine <version <2, 0, 0>>
-{
-    using m_version = version <2, 0, 0>;
-    using self = virtual_machine <m_version>;
-    
-    codefile <m_version> & _code_file;
-    opcode * _current_opcode;
-    
-    
-    virtual_machine (codefile <m_version> & code_file) : _code_file {code_file}
-    {
-        _current_opcode = _code_file.begin();
-    }
-    
-    
-    template <typename Version>
-    auto run () -> result;
-    
-    template <>
-    auto run <version <2, 0, 0>> () -> result
-    {
-        for (;;)
-        {
-            opcode & current_opcode = * exchange (_current_opcode, _current_opcode + 1);
-            opcode & next_opcode = * _current_opcode;
-            
-            switch (current_opcode)
-            {
-                case opcode::RETURN:
-                {
-                    cout << "return" << endl;
-                    return result::INTERPRET_OK;
-                }
+                    cout << "negate " << top () << endl;
                     
-                case opcode::CONSTANT:
-                {
-                    cout << "constant " << _code_file.constants [next_opcode] << endl;
+                    push (-pop ());
                     break;
                 }
                     

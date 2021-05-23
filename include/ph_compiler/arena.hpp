@@ -1,45 +1,62 @@
 #pragma once
 
-template <typename version, auto N>
-struct arena;
+/**
+ 1) a block of contiguous memory
+ 2) a strategy for handing out parts of that memory and reclaiming it later on.
+ */
+template <typename T, std::size_t alignment, std::size_t N>
 
-#include "version.hpp"
-
-template <auto N>
-struct arena <version <1, 0, 0>, N>
+struct arena
 {
-    using size_type = decltype (N);
-    static constexpr size_type size_value = N;
-    static constexpr auto alignment = alignof (std::max_align_t);
     
-    
-public:
+    using value_type = T;
+
     auto reset ()
     {
         _ptr = _buffer;
     }
     
-    static constexpr auto size () -> size_type
+    static constexpr auto size () -> std::size_t
     {
-        return size_value;
+        return N;
     }
     
-    auto used () const -> size_type
+    auto used () const -> std::size_t
     {
-        return static_cast <size_type> (_ptr - _buffer);
+        return static_cast <std::size_t> (_ptr - _buffer);
     }
     
-    auto allocate (size_type n) -> std::byte *
+    auto allocate (std::size_t n) -> T *
     {
-        size_type const aligned_n = align_up (n);
-    }
-    
-    auto deallocate (std::byte * p, size_type n) -> void
-    {
+        if (std::size_t aligned = align_up (n);
+            available_bytes () >= aligned)
+        {
+            return std::exchange (_ptr, _ptr + aligned);
+
+        } else
+        {
+            return static_cast <T*> (::operator new (n));
+        }
         
     }
     
-    auto align_up (size_type n) const -> size_type
+    auto deallocate (T * p, std::size_t n) -> void
+    {
+        if (pointer_in_buffer (p))
+        {
+            n = align_up (n);
+            if (p + n == _ptr)
+            {
+                _ptr = p;
+            }
+            
+        } else
+        {
+            ::operator delete (p);
+        }
+    }
+    
+    auto align_up (std::size_t n) const -> auto
     {
         return (n + (alignment - 1)) & ~(alignment - 1);
     }
@@ -47,10 +64,17 @@ public:
     auto pointer_in_buffer (std::byte * p) const -> bool
     {
         return std::uintptr_t (p) >= std::uintptr_t (_buffer) and
-        std::uintptr_t (p) < std::uintptr_t (_buffer) + size_value;
+        std::uintptr_t (p) < std::uintptr_t (_buffer) + N;
+    }
+    
+    auto available_bytes () const -> std::size_t
+    {
+        return _buffer + N - _ptr;
     }
     
     
-    alignas (alignment) std::byte _buffer [size_value];
-    std::byte * _ptr {_buffer};
+    alignas (alignment) T _buffer [N];
+    T * _ptr {_buffer};
 };
+
+
