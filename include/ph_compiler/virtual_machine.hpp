@@ -1,5 +1,5 @@
 #pragma once
-//#include "codefile.hpp"
+//#include "chunk.hpp"
 #include "opcode.hpp"
 #include "version.hpp"
 #include "compiler.hpp"
@@ -24,18 +24,18 @@ enum struct interpret_result
 
 #define MAX_STACK 256
 
-template <typename codefile>
+template <typename chunk>
 struct virtual_machine
 {
     using self = virtual_machine;
-    using codefile_type = codefile;
-    using opcode_type = typename codefile_type::opcode_type;
-    using constant_type = typename codefile_type::constant_type;
+    using chunk_type = chunk;
+    using opcode_type = typename chunk_type::opcode_type;
+    using constant_type = typename chunk_type::constant_type;
     
     
     
     
-    codefile_type * _code_file;
+    chunk_type * _code_file;
     opcode_type * _current_opcode;
     
     constant_type _stack [MAX_STACK];
@@ -70,7 +70,7 @@ struct virtual_machine
         return _result;
     }
     
-    virtual_machine (codefile & code_file) : _code_file {&code_file}
+    virtual_machine (chunk & code_file) : _code_file {&code_file}
     {
         _current_opcode = _code_file->begin();
         _stack_top = _stack;
@@ -86,13 +86,13 @@ struct virtual_machine
     
     auto interpret (char const* source) -> interpret_result
     {
+        chunk _chunk;
         
-        
-        compiler <codefile_type> comp {};
+        compiler <chunk_type> comp {source, _chunk};
 //        compile (source);
 //        return interpret_result::INTERPRET_OK;
         
-        codefile_type code_file;
+        chunk_type code_file;
         
         if (!comp.compile (source, &code_file))
         {

@@ -22,12 +22,11 @@ concept is_compiler = requires (compiler& c)
 
 #define TEST_FILE_0
 
-template <typename _codefile_type>
+template <typename chunk>
 struct compiler
 {
-    using codefile_type = _codefile_type;
-    using opcode_type = typename codefile_type::opcode_type;
-    using constant_type = typename codefile_type::constant_type;
+    using opcode = typename chunk::opcode;
+    using constant = typename chunk::constant;
     
     
     struct parser
@@ -38,9 +37,13 @@ struct compiler
         bool panic_mode;
     };
     
+    bool _compiled {false};
+    
     parser _parser;
     
-    codefile_type& _compiling_chunk;
+    chunk & _chunk;
+    
+    
     
     
     auto compile (char const* source) -> void
@@ -63,11 +66,10 @@ struct compiler
         }
     }
     
-    compiler (const char* source, codefile_type& chunk)
+    compiler (const char* source, chunk& c) : _chunk {c}
     {
         scanner sc {source};
         
-        _compiling_chunk = chunk;
         
         _parser.had_error = false;
         _parser.panic_mode = false;
@@ -77,7 +79,7 @@ struct compiler
         expression ();
         consume (sc, token_type::TOKEN_EOF, "Expect end of expression.");
         end_compiler ();
-        return !_parser.had_error;
+        _compiled = !_parser.had_error;
     }
     
 //    auto compile (const char* source, codefile_type* chunk) -> bool
@@ -98,8 +100,9 @@ struct compiler
 //    }
     
     
-    codefile_type* current_chunk() {
-        return _compiling_chunk;
+    auto current_chunk() -> chunk *
+    {
+        return _chunk;
     }
     
     
@@ -118,16 +121,16 @@ private:
     
     auto number() -> void
     {
-        constant_type value = strtod (_parser.previous.start, NULL);
+        constant value = strtod (_parser.previous.start, NULL);
         emit_constant (value);
     }
     
-    auto emit_constant (constant_type value) -> void
+    auto emit_constant (constant value) -> void
     {
-        emit_bytes (codefile_type::OP_CONSTANT, make_constant (value));
+        emit_bytes (opcode::OP_CONSTANT, make_constant (value));
     }
     
-    uint_fast8_t make_constant (constant_type value)
+    uint_fast8_t make_constant (constant value)
     {
         int constant = addConstant(current_chunk(), value);
         
@@ -140,7 +143,7 @@ private:
     }
     
     void emit_return() {
-        emit_byte (opcode_type::RETURN);
+        emit_byte (opcode::RETURN);
     }
     
     
@@ -192,7 +195,7 @@ private:
     /*
      It writes the given byte, which may be an opcode or an operand to an instruction.
      */
-    void emit_byte (opcode_type byte) {
+    void emit_byte (opcode byte) {
         current_chunk()->write_opcode (byte);
         //        writeChunk(current_chunk (), byte, _parser.previous._line);
     }
@@ -240,7 +243,7 @@ private:
         // Emit the operator instruction.
         switch (operatorType)
         {
-            case token_type::TOKEN_MINUS: emit_byte(opcode_type::NEGATE); break;
+            case token_type::TOKEN_MINUS: emit_byte(opcode::NEGATE); break;
             default: return; // Unreachable.
         }
     }

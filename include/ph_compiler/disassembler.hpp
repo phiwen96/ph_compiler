@@ -1,6 +1,6 @@
 #pragma once
 #include "opcode.hpp"
-#include "codefile.hpp"
+#include "chunk.hpp"
 #include "version.hpp"
 
 using namespace std;

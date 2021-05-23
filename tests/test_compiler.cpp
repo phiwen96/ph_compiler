@@ -7,7 +7,7 @@
 #include <ph_compiler/compiler.hpp>
 #include <ph_compiler/version.hpp>
 #include <ph_compiler/scanner.hpp>
-#include <ph_compiler/codefile.hpp>
+#include <ph_compiler/chunk.hpp>
 #include <ph_compiler/opcode.hpp>
 #include <ph_compiler/disassembler.hpp>
 #include <ph_compiler/value.hpp>
@@ -39,7 +39,7 @@ using namespace std;
 
 struct app
 {
-    using codefile = codefile <opcode, double>;
+    using codefile = chunk <opcode, double>;
     
     char* _path;
     interpret_result _result;
