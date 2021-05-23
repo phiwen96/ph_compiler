@@ -12,7 +12,7 @@ using namespace std;
 
 
 template <typename T>
-struct constant_pool
+struct value_array
 {
     using constant_type = T;
     
@@ -21,7 +21,7 @@ struct constant_pool
     int count;          // How many of the allocated elements are actually in use.
     int capacity;       // Number of elements in the array we have allocated.
     
-    constant_pool () : count {0}, capacity {8}, constants {(constant_type*) malloc (sizeof (constant_type) * 8)} {
+    value_array () : count {0}, capacity {8}, constants {(constant_type*) malloc (sizeof (constant_type) * 8)} {
 //        if (constants == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
     }
 
@@ -61,7 +61,7 @@ struct constant_pool
     
     
     
-    ~constant_pool () {
+    ~value_array () {
         free (constants);
     }
     
