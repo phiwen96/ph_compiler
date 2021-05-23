@@ -1,12 +1,12 @@
 //#ifndef CODEFILE_HPP
 //#define CODEFILE_HPP
 #pragma once
-#include "constant_pool.hpp"
+#include "value_array.hpp"
 //#include "opcode.hpp"
 #include "version.hpp"
+//#include "value.hpp"
 
 using namespace std;
-
 
 
 
@@ -26,58 +26,38 @@ using namespace std;
 
 
 //template <typename opcode_allo, typename constants_allo>
-template <typename __opcode, typename __constant>
+template <typename __code_type, typename __value_type, typename __index_type>
 struct chunk
 {
-    using opcode = __opcode;
-    using constant = __constant;
-//    using opcode_type = _opcode_type;
-//    using constant_type = _constant_type;
+    using code_type = __code_type;
+    using value_type = __value_type;
+    using index_type = __index_type;
     
-//    using value_type = typename allo::value_type;
-//    using instruction = instruction;
+    code_type* m_code;
     
-//    opcode_allo & _opcode_allocator;
-    
-//    constants_allo & _constants_allocator;
-    
-    
-    opcode * lines;
-    
-    constant_pool <constant> constants;
-    int count;          // How many of the allocated elements are actually in use.
-    int capacity;       // Number of elements in the array we have allocated.
-    
-//    alignas (alignment)
-//    struct iterator
-//    {
-//        using iterator_category = std::contiguous_iterator_tag;
-//        using difference_type   = std::ptrdiff_t;
-//        using value_type        = opcode*;
-//        using pointer           = int*;  // or also value_type*
-//        using reference         = int&;  // or also value_type&
-//    };
-    
-    chunk () : count {0}, capacity {8}, lines {(opcode *) malloc (sizeof (lines ) * 8)}, constants {} {
-        if (lines == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
-    }
+    value_array <value_type, index_type> m_constants;
+    index_type m_count;          // How many of the allocated elements are actually in use.
+    index_type m_capacity;       // Number of elements in the array we have allocated.
 
     
-    auto write_opcode (opcode byte) -> void
+    chunk () : m_count {0}, m_capacity {8}, m_code {(code_type *) malloc (sizeof (m_code ) * 8)}, m_constants {} {
+        if (m_code == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
+    }
+    auto write_opcode (code_type byte) -> void
     {
         if (full ())
         {
-            transform (2 * capacity);
+            transform (2 * m_capacity);
         }
 
-        ::new (lines + count) opcode  {byte};
-        ++ count;
+        ::new (m_code + m_count) code_type  {byte};
+        ++ m_count;
     }
     
-    auto add_constant (constant byte) -> opcode
+    auto add_constant (value_type byte) -> index_type
     {
-        constants.write_constant (byte);
-        return static_cast <opcode> (constants.count - 1);
+        m_constants.write_constant (byte);
+        return static_cast <index_type> (m_constants.m_count - 1);
     }
     
 //    auto operator += (double constant) -> auto&
@@ -88,18 +68,18 @@ struct chunk
     
     auto begin () -> auto *
     {
-        return lines;
+        return m_code;
     }
     
     auto end () -> auto *
     {
-        return lines + count;
+        return m_code + count;
     }
     
     
     
     ~chunk () {
-        free (lines);
+        free (m_code);
     }
     
 private:
@@ -108,7 +88,7 @@ private:
      */
     auto full () const -> bool
     {
-        return capacity < count + 1;
+        return m_capacity < m_count + 1;
     }
     
 
@@ -117,14 +97,14 @@ private:
         if (nr_of_bytes < 0)
             throw runtime_error ("trying to transform into negative size");
         
-        if (nr_of_bytes == capacity)
+        if (nr_of_bytes == m_capacity)
             throw runtime_error ("trying to transform into same size as is");
         
-        int old_capacity = exchange (capacity, nr_of_bytes);
+        int old_capacity = exchange (m_capacity, nr_of_bytes);
         
-        lines = (opcode *) realloc (lines, capacity);
+        m_code = (code_type *) realloc (m_code, m_capacity);
         
-        if (lines == nullptr)
+        if (m_code == nullptr)
         {
             throw runtime_error ("failed to reallocate the requested block of memory");
         }

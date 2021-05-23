@@ -16,42 +16,42 @@ using namespace std;
 enum token_type
 {
     // Single-character tokens.
-    LEFT_PAREN, RIGHT_PAREN,
-    LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, MINUS, PLUS,
-    SEMICOLON, SLASH, STAR,
+    TOK_LEFT_PAREN, TOK_RIGHT_PAREN,
+    TOK_LEFT_BRACE, TOK_RIGHT_BRACE,
+    TOK_COMMA, TOK_DOT, TOK_MINUS, TOK_PLUS,
+    TOK_SEMICOLON, TOK_SLASH, TOK_STAR,
     // One or two character tokens.
-    BANG, BANG_EQUAL,
-    EQUAL, EQUAL_EQUAL,
-    GREATER, GREATER_EQUAL,
-    LESS, LESS_EQUAL,
+    TOK_BANG, TOK_BANG_EQUAL,
+    TOK_EQUAL, TOK_EQUAL_EQUAL,
+    TOK_GREATER, TOK_GREATER_EQUAL,
+    TOK_LESS, TOK_LESS_EQUAL,
     // Literals.
-    IDENTIFIER, STRING, NUMBER,
+    TOK_IDENTIFIER, TOK_STRING, TOK_NUMBER,
     // Keywords.
-    AND, CLASS, ELSE, FALSE,
-    FOR, FUN, IF, NIL, OR,
-    PRINT, _RETURN, SUPER, THIS,
-    TRUE, VAR, WHILE,
+    TOK_AND, TOK_CLASS, TOK_ELSE, TOK_FALSE,
+    TOK_FOR, TOK_FUN, TOK_IF, TOK_NIL, TOK_OR,
+    TOK_PRINT, TOK_RETURN, TOK_SUPER, TOK_THIS,
+    TOK_TRUE, TOK_VAR, TOK_WHILE,
     
-    ERROR, _EOF
+    TOK_ERROR, TOK_EOF
 };
 
 struct token
 {
-    token_type _type;
-    char const* _start;
-    int _length;
-    int _line;
+    token_type m_type;
+    char const* m_start;
+    int m_length;
+    int m_line;
 };
 
 
 struct scanner
 {
-    char const* _start;
-    char const* _current;
-    int _line;
+    char const* m_start;
+    char const* m_current;
+    int m_line;
     
-    scanner (char const* source) : _start {source}, _current {source}, _line {1}
+    scanner (char const* source) : m_start {source}, m_current {source}, m_line {1}
     {
         
     }
@@ -60,12 +60,12 @@ struct scanner
     {
         skip_whitespaces ();
         
-        _start = _current;
+        m_start = m_current;
         
         // check to see if we’ve reached the end of the source code
         if (is_at_end ())
         {
-            return make_token (token_type::_EOF);
+            return make_token (TOK_EOF);
         }
         
         char c = advance ();
@@ -83,25 +83,25 @@ struct scanner
         
         switch (c)
         {
-            case '(': return make_token (token_type::LEFT_PAREN);
-            case ')': return make_token (token_type::RIGHT_PAREN);
-            case '{': return make_token (token_type::LEFT_BRACE);
-            case '}': return make_token (token_type::RIGHT_BRACE);
-            case ';': return make_token (token_type::SEMICOLON);
-            case ',': return make_token (token_type::COMMA);
-            case '.': return make_token (token_type::DOT);
-            case '-': return make_token (token_type::MINUS);
-            case '+': return make_token (token_type::PLUS);
-            case '/': return make_token (token_type::SLASH);
-            case '*': return make_token (token_type::STAR);
+            case '(': return make_token (TOK_LEFT_PAREN);
+            case ')': return make_token (TOK_RIGHT_PAREN);
+            case '{': return make_token (TOK_LEFT_BRACE);
+            case '}': return make_token (TOK_RIGHT_BRACE);
+            case ';': return make_token (TOK_SEMICOLON);
+            case ',': return make_token (TOK_COMMA);
+            case '.': return make_token (TOK_DOT);
+            case '-': return make_token (TOK_MINUS);
+            case '+': return make_token (TOK_PLUS);
+            case '/': return make_token (TOK_SLASH);
+            case '*': return make_token (TOK_STAR);
             case '!':
-                return make_token (match ('=') ? token_type::BANG_EQUAL : token_type::BANG);
+                return make_token (match ('=') ? TOK_BANG_EQUAL : TOK_BANG);
             case '=':
-                return make_token (match ('=') ? token_type::EQUAL_EQUAL : token_type::EQUAL);
+                return make_token (match ('=') ? TOK_EQUAL_EQUAL : TOK_EQUAL);
             case '<':
-                return make_token (match ('=') ? token_type::LESS_EQUAL : token_type::LESS);
+                return make_token (match ('=') ? TOK_LESS_EQUAL : TOK_LESS);
             case '>':
-                return make_token (match ('=') ? token_type::GREATER_EQUAL : token_type::GREATER);
+                return make_token (match ('=') ? TOK_GREATER_EQUAL : TOK_GREATER);
                 
             case '"':
                 return string ();
@@ -115,51 +115,51 @@ private:
     
     auto check_keyword (int start, int length, char const* rest, token_type type) -> token_type
     {
-        if (_current - _start == start + length and memcmp (_start + start, rest, length) == 0)
+        if (m_current - m_start == start + length and memcmp (m_start + start, rest, length) == 0)
         {
             return type;
         }
-        return token_type::IDENTIFIER;
+        return TOK_IDENTIFIER;
     }
     auto identifier_type () -> token_type
     {
-        switch (_start [0])
+        switch (m_start [0])
         {
-            case 'a': return check_keyword (1, 2, "nd", token_type::AND);
-            case 'c': return check_keyword (1, 4, "lass", token_type::CLASS);
-            case 'e': return check_keyword (1, 3, "lse", token_type::ELSE);
+            case 'a': return check_keyword (1, 2, "nd", TOK_AND);
+            case 'c': return check_keyword (1, 4, "lass", TOK_CLASS);
+            case 'e': return check_keyword (1, 3, "lse", TOK_ELSE);
             case 'f':
-                  if (_current - _start > 1)
+                  if (m_current - m_start > 1)
                   {
-                    switch (_start [1])
+                    switch (m_start [1])
                     {
-                        case 'a': return check_keyword (2, 3, "lse", token_type::FALSE);
-                        case 'o': return check_keyword (2, 1, "r", token_type::FOR);
-                        case 'u': return check_keyword (2, 1, "n", token_type::FUN);
+                        case 'a': return check_keyword (2, 3, "lse", TOK_FALSE);
+                        case 'o': return check_keyword (2, 1, "r", TOK_FOR);
+                        case 'u': return check_keyword (2, 1, "n", TOK_FUN);
                     }
                   }
                   break;
-            case 'i': return check_keyword (1, 1, "f", token_type::IF);
-            case 'n': return check_keyword (1, 2, "il", token_type::NIL);
-            case 'o': return check_keyword (1, 1, "r", token_type::OR);
-            case 'p': return check_keyword (1, 4, "rint", token_type::PRINT);
-            case 'r': return check_keyword (1, 5, "eturn", token_type::_RETURN);
-            case 's': return check_keyword (1, 4, "uper", token_type::SUPER);
+            case 'i': return check_keyword (1, 1, "f", TOK_IF);
+            case 'n': return check_keyword (1, 2, "il", TOK_NIL);
+            case 'o': return check_keyword (1, 1, "r", TOK_OR);
+            case 'p': return check_keyword (1, 4, "rint", TOK_PRINT);
+            case 'r': return check_keyword (1, 5, "eturn", TOK_RETURN);
+            case 's': return check_keyword (1, 4, "uper", TOK_SUPER);
             case 't':
-                  if (_current - _start > 1)
+                  if (m_current - m_start > 1)
                   {
-                    switch (_start [1])
+                    switch (m_start [1])
                     {
-                        case 'h': return check_keyword (2, 2, "is", token_type::THIS);
-                        case 'r': return check_keyword (2, 2, "ue", token_type::TRUE);
+                        case 'h': return check_keyword (2, 2, "is", TOK_THIS);
+                        case 'r': return check_keyword (2, 2, "ue", TOK_TRUE);
                     }
                   }
                   break;
-            case 'v': return check_keyword (1, 2, "ar", token_type::VAR);
-            case 'w': return check_keyword (1, 4, "hile", token_type::WHILE);
+            case 'v': return check_keyword (1, 2, "ar", TOK_VAR);
+            case 'w': return check_keyword (1, 4, "hile", TOK_WHILE);
         }
         
-        return token_type::IDENTIFIER;
+        return token_type::TOK_IDENTIFIER;
     }
     auto identifier() -> token
     {
@@ -188,7 +188,7 @@ private:
                 advance ();
             }
         }
-        return make_token (token_type::NUMBER);
+        return make_token (TOK_NUMBER);
     }
     
     // consume characters until we reach the closing quote
@@ -198,7 +198,7 @@ private:
         {
             if (peek () == '\n')
             {
-                ++_line;
+                ++m_line;
                 advance ();
             }
         }
@@ -210,7 +210,7 @@ private:
         
         // The closing quote.
         advance ();
-        return make_token (token_type::STRING);
+        return make_token (TOK_STRING);
     }
     auto skip_whitespaces () -> void
     {
@@ -226,7 +226,7 @@ private:
                     break;
                     
                 case '\n':
-                    ++_line;
+                    ++m_line;
                     advance ();
                     break;
                     
@@ -252,31 +252,31 @@ private:
     auto peek_next() -> char
     {
         if (is_at_end ()) return '\0';
-        return _current [1];
+        return m_current [1];
     }
     
     auto peek () -> char
     {
-        return *_current;
+        return *m_current;
     }
     // If the current character is the desired one, we advance and return true. Otherwise, we return false to indicate it wasn’t matched.
     auto match (char expected) -> bool
     {
         if (is_at_end ()) return false;
-        if (*_current != expected) return false;
-        ++_current;
+        if (*m_current != expected) return false;
+        ++m_current;
         return true;
     }
     
     // consumes the current character and returns it.
     auto advance () -> char
     {
-        ++_current;
-        return _current [-1];
+        ++m_current;
+        return m_current [-1];
     }
     auto is_at_end () const -> bool
     {
-        return *_current == '\0';
+        return *m_current == '\0';
     }
     
     
@@ -285,10 +285,10 @@ private:
     {
         return token
         {
-            ._type = type,
-            ._start = _start,
-            ._length = (int) (_current - _start),
-            ._line = _line
+            .m_type = type,
+            .m_start = m_start,
+            .m_length = (int) (m_current - m_start),
+            .m_line = m_line
         };
     }
     
@@ -296,10 +296,10 @@ private:
     {
         return
         {
-            ._type = token_type::ERROR,
-            ._start = message,
-            ._length = (int) strlen (message),
-            ._line = _line
+            .m_type = TOK_ERROR,
+            .m_start = message,
+            .m_length = (int) strlen (message),
+            .m_line = m_line
         };
     }
 };

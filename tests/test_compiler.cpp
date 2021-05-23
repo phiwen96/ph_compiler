@@ -39,7 +39,7 @@ using namespace std;
 
 struct app
 {
-    using chunk = chunk <opcode, double>;
+    using chunk = chunk <opcode, value, signed>;
     
     char* _path;
     interpret_result _result;

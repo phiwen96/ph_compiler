@@ -24,7 +24,10 @@ inline void out (auto&&... s) {
     X (ADD, 2) \
     X (SUBTRACT, 2) \
     X (MULTIPLY, 2) \
-    X (DIVIDE, 2)
+    X (DIVIDE, 2) \
+    X (NIL, 2) \
+    X (TRUE, 2) \
+    X (FALSE, 2)
 
 /**
  one-byte operation code
@@ -105,4 +108,8 @@ break;
 #undef BYTE_INSTRUCTION
 
 
+
+enum {
+    OP_RETURN
+};
 

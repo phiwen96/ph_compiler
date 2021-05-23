@@ -1,1 +1,1 @@
-if 2 == 3 print 3;
+var x = "outer";

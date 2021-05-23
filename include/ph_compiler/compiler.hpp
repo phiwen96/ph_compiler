@@ -1,6 +1,7 @@
 #pragma once
 #include "version.hpp"
 #include "scanner.hpp"
+#include "value.hpp"
 
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
@@ -25,19 +26,21 @@ concept is_compiler = requires (compiler& c)
 /**
  The compiler will take the user’s program and fill up the chunk with bytecode
  */
-template <typename chunk>
+template <typename __chunk_type>
 struct compiler
 {
-    using opcode = typename chunk::opcode;
-    using constant = typename chunk::constant;
+    using chunk_type = __chunk_type;
+    using code_type = typename chunk_type::code_type;
+    using value_type = typename chunk_type::value_type;
+    using index_type = typename chunk_type::index_type;
     
     
     struct parser
     {
-        token current;
-        token previous;
-        bool had_error;
-        bool panic_mode;
+        token m_current;
+        token m_previous;
+        bool m_had_error;
+        bool m_panic_mode;
     };
     
     // These are all of Lox’s precedence levels in order from lowest to highest
@@ -62,9 +65,9 @@ struct compiler
 
     struct parse_rule
     {
-        parse_fn _prefix;
-        parse_fn _infix;
-        precedence _precedence;
+        parse_fn m_prefix;
+        parse_fn m_infix;
+        precedence m_precedence;
     };
 
     
@@ -74,78 +77,89 @@ struct compiler
     
     
     parse_rule  rules [50] {
-        parse_rule {&compiler::grouping, NULL,   precedence::NONE}, //LEFT_PAREN
-        parse_rule {NULL,     NULL,   precedence::NONE}, // RIGHT_PAREN
-        parse_rule {NULL,     NULL,   precedence::NONE}, //LEFT_BRACE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // RIGHT_BRACE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // COMMA
-        parse_rule {NULL,     NULL,   precedence::NONE}, // DOT
-        parse_rule {&compiler::unary,    &compiler::binary, precedence::TERM}, // MINUS
-        parse_rule {NULL,     &compiler::binary, precedence::TERM}, // PLUS
-        parse_rule {NULL,     NULL,   precedence::NONE}, // SEMICOLON
-        parse_rule {NULL,     &compiler::binary, precedence::FACTOR}, // SLASH
-        parse_rule {NULL,     &compiler::binary, precedence::FACTOR}, // STAR
-        parse_rule {NULL,     NULL,   precedence::NONE}, // BANG
-        parse_rule {NULL,     NULL,   precedence::NONE}, // BANG_EQUAL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // EQUAL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // EQUAL_EQUAL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // GREATER
-        parse_rule {NULL,     NULL,   precedence::NONE}, // GREATER_EQUAL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // LESS
-        parse_rule {NULL,     NULL,   precedence::NONE}, // LESS_EQUAL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // IDENTIFIER
-        parse_rule {NULL,     NULL,   precedence::NONE}, // STRING
-        parse_rule {&compiler::number,   NULL,   precedence::NONE}, // NUMBER
-        parse_rule {NULL,     NULL,   precedence::NONE}, // AND
-        parse_rule {NULL,     NULL,   precedence::NONE}, // CLASS
-        parse_rule {NULL,     NULL,   precedence::NONE}, // ELSE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // FALSE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // FOR
-        parse_rule {NULL,     NULL,   precedence::NONE}, // FUN
-        parse_rule {NULL,     NULL,   precedence::NONE}, // IF
-        parse_rule {NULL,     NULL,   precedence::NONE}, // NIL
-        parse_rule {NULL,     NULL,   precedence::NONE}, // OR
-        parse_rule {NULL,     NULL,   precedence::NONE}, // PRINT
-        parse_rule {NULL,     NULL,   precedence::NONE}, // RETURN
-        parse_rule {NULL,     NULL,   precedence::NONE}, // SUPER
-        parse_rule {NULL,     NULL,   precedence::NONE}, // THIS
-        parse_rule {NULL,     NULL,   precedence::NONE}, // TRUE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // VAR
-        parse_rule {NULL,     NULL,   precedence::NONE}, // WHILE
-        parse_rule {NULL,     NULL,   precedence::NONE}, // ERROR
-        parse_rule {NULL,     NULL,   precedence::NONE}, // _EOF
+         {&compiler::grouping, NULL,   precedence::NONE}, //LEFT_PAREN
+         {NULL,     NULL,   precedence::NONE}, // RIGHT_PAREN
+         {NULL,     NULL,   precedence::NONE}, //LEFT_BRACE
+         {NULL,     NULL,   precedence::NONE}, // RIGHT_BRACE
+         {NULL,     NULL,   precedence::NONE}, // COMMA
+         {NULL,     NULL,   precedence::NONE}, // DOT
+         {&compiler::unary,    &compiler::binary, precedence::TERM}, // MINUS
+         {NULL,     &compiler::binary, precedence::TERM}, // PLUS
+         {NULL,     NULL,   precedence::NONE}, // SEMICOLON
+         {NULL,     &compiler::binary, precedence::FACTOR}, // SLASH
+         {NULL,     &compiler::binary, precedence::FACTOR}, // STAR
+         {NULL,     NULL,   precedence::NONE}, // BANG
+         {NULL,     NULL,   precedence::NONE}, // BANG_EQUAL
+         {NULL,     NULL,   precedence::NONE}, // EQUAL
+         {NULL,     NULL,   precedence::NONE}, // EQUAL_EQUAL
+         {NULL,     NULL,   precedence::NONE}, // GREATER
+         {NULL,     NULL,   precedence::NONE}, // GREATER_EQUAL
+         {NULL,     NULL,   precedence::NONE}, // LESS
+         {NULL,     NULL,   precedence::NONE}, // LESS_EQUAL
+         {NULL,     NULL,   precedence::NONE}, // IDENTIFIER
+         {NULL,     NULL,   precedence::NONE}, // STRING
+         {&compiler::number,   NULL,   precedence::NONE}, // NUMBER
+         {NULL,     NULL,   precedence::NONE}, // AND
+         {NULL,     NULL,   precedence::NONE}, // CLASS
+         {NULL,     NULL,   precedence::NONE}, // ELSE
+         {&compiler::literal,     NULL,   precedence::NONE}, // FALSE
+         {NULL,     NULL,   precedence::NONE}, // FOR
+         {NULL,     NULL,   precedence::NONE}, // FUN
+         {NULL,     NULL,   precedence::NONE}, // IF
+         {&compiler::literal,     NULL,   precedence::NONE}, // NIL
+         {NULL,     NULL,   precedence::NONE}, // OR
+         {NULL,     NULL,   precedence::NONE}, // PRINT
+         {NULL,     NULL,   precedence::NONE}, // RETURN
+         {NULL,     NULL,   precedence::NONE}, // SUPER
+         {NULL,     NULL,   precedence::NONE}, // THIS
+         {&compiler::literal,     NULL,   precedence::NONE}, // TRUE
+         {NULL,     NULL,   precedence::NONE}, // VAR
+         {NULL,     NULL,   precedence::NONE}, // WHILE
+         {NULL,     NULL,   precedence::NONE}, // ERROR
+         {NULL,     NULL,   precedence::NONE}, // _EOF
     };
     
-    bool _compiled {false};
+    auto literal() -> void
+    {
+      switch (m_parser.m_previous.m_type)
+      {
+          case token_type::TOK_FALSE: emit_byte (code_type::FALSE); break;
+          case token_type::TOK_NIL: emit_byte (code_type::NIL); break;
+          case token_type::TOK_TRUE: emit_byte (code_type::TRUE); break;
+        default: return; // Unreachable.
+      }
+    }
     
-    parser _parser;
+    bool m_compiled {false};
     
-    chunk & _chunk;
+    parser m_parser;
     
-    scanner _scanner;
+    chunk_type & m_chunk;
+    
+    scanner m_scanner;
     
 
     
-    compiler (const char* source, chunk& c) : _chunk {c}, _scanner {source}
+    compiler (const char* source, chunk_type& c) : m_chunk {c}, m_scanner {source}
     {
         // init scanner
         
         
         
-        _parser.had_error = false;
-        _parser.panic_mode = false;
+        m_parser.m_had_error = false;
+        m_parser.m_panic_mode = false;
         
         
         advance ();
         expression ();
-        consume (token_type::_EOF, "Expect end of expression.");
+        consume (token_type::TOK_EOF, "Expect end of expression.");
         end_compiler ();
-        _compiled = !_parser.had_error;
+        m_compiled = !m_parser.m_had_error;
     }
     
     operator bool () const
     {
-        return !_parser.had_error;
+        return !m_parser.m_had_error;
     }
     
     
@@ -157,7 +171,7 @@ private:
     auto parse_precedence (precedence p) -> void
     {
         advance ();
-        parse_fn prefix_rule = get_rule (_parser.previous._type)->_prefix;
+        parse_fn prefix_rule = get_rule (m_parser.m_previous.m_type)->m_prefix;
         if (prefix_rule == NULL)
         {
             error ("Expect expression.");
@@ -166,10 +180,10 @@ private:
         CALL_MEMBER_FN (*this, prefix_rule) ();
 //        prefix_rule ();
         
-        while (p <= get_rule (_parser.current._type) -> _precedence)
+        while (p <= get_rule (m_parser.m_current.m_type) -> m_precedence)
         {
             advance ();
-            parse_fn infix_rule = get_rule (_parser.previous._type) -> _infix;
+            parse_fn infix_rule = get_rule (m_parser.m_previous.m_type) -> m_infix;
             CALL_MEMBER_FN (*this, infix_rule) ();
         }
     }
@@ -193,77 +207,78 @@ private:
     
     auto binary () -> void
     {
-        token_type operatorType = _parser.previous._type;
+        token_type operatorType = m_parser.m_previous.m_type;
         parse_rule* rule = get_rule (operatorType);
-        parse_precedence ((precedence) (rule->_precedence + 1));
+        parse_precedence ((precedence) (rule->m_precedence + 1));
         
         switch (operatorType) {
-            case token_type::PLUS:          emit_byte (opcode::ADD); break;
-            case token_type::MINUS:         emit_byte (opcode::SUBTRACT); break;
-            case token_type::STAR:          emit_byte (opcode::MULTIPLY); break;
-            case token_type::SLASH:         emit_byte (opcode::DIVIDE); break;
+            case token_type::TOK_PLUS:          emit_byte (code_type::ADD); break;
+            case token_type::TOK_MINUS:         emit_byte (code_type::SUBTRACT); break;
+            case token_type::TOK_STAR:          emit_byte (code_type::MULTIPLY); break;
+            case token_type::TOK_SLASH:         emit_byte (code_type::DIVIDE); break;
             default: return; // Unreachable.
         }
     }
     
-    auto number() -> void
+    auto number () -> void
     {
-        constant value = strtod (_parser.previous._start, NULL);
-        emit_constant (value);
+        double _value = strtod (m_parser.m_previous.m_start, NULL);
+//        value val = NUMBER_VAL (_value);
+        emit_constant (NUMBER_VAL(_value));
     }
     
-    auto emit_constant (constant value) -> void
+    auto emit_constant (value_type val) -> void
     {
-        emit_bytes (opcode::CONSTANT, make_constant (value));
+        emit_bytes (code_type::CONSTANT, make_constant (val));
     }
     
-    opcode make_constant (constant value)
+    index_type make_constant (value_type val)
     {
         
-        auto constant = _chunk.add_constant (value);
+        index_type constant_index = m_chunk.add_constant (val);
         
-        if (constant > UINT8_MAX) {
+        if (constant_index > UINT8_MAX) {
             error ("Too many constants in one chunk.");
 //            return 0;
         }
         
-        return (opcode) constant;
+        return constant_index;
     }
     
     void emit_return() {
-        emit_byte (opcode::RETURN);
+        emit_byte (code_type::RETURN);
     }
     
     
     
     void error_at_current (const char* message)
     {
-        error_at(&_parser.current, message);
+        error_at(&m_parser.m_current, message);
     }
     
     void error (const char* message) {
-        error_at(&_parser.previous, message);
+        error_at(&m_parser.m_previous, message);
     }
     
     void error_at (token* tok, const char* message) {
-        if (_parser.panic_mode) return;
-        _parser.panic_mode = true;
-        fprintf(stderr, "[line %d] Error", tok->_line);
+        if (m_parser.m_panic_mode) return;
+        m_parser.m_panic_mode = true;
+        fprintf(stderr, "[line %d] Error", tok->m_line);
         
-        if (tok->_type == token_type::_EOF) {
+        if (tok->m_type == token_type::TOK_EOF) {
             fprintf(stderr, " at end");
-        } else if (tok->_type == token_type::ERROR) {
+        } else if (tok->m_type == token_type::TOK_ERROR) {
             // Nothing.
         } else {
-            fprintf(stderr, " at '%.*s'", tok->_length, tok->_start);
+            fprintf(stderr, " at '%.*s'", tok->m_length, tok->m_start);
         }
         
         fprintf(stderr, ": %s\n", message);
-        _parser.had_error = true;
+        m_parser.m_had_error = true;
     }
     
     void consume (token_type type, const char* message) {
-        if (_parser.current._type == type) {
+        if (m_parser.m_current.m_type == type) {
             advance ();
             return;
         }
@@ -277,31 +292,31 @@ private:
         // We recursively call back into expression()
         // to compile the expression between the parentheses,
         // then parse the closing ) at the end.
-        consume (token_type::RIGHT_PAREN, "Expect ')' after expression.");
+        consume (token_type::TOK_RIGHT_PAREN, "Expect ')' after expression.");
     }
     
     /*
      It writes the given byte, which may be an opcode or an operand to an instruction.
      */
-    void emit_byte (opcode byte) {
-        _chunk.write_opcode (byte);
+    void emit_byte (auto b) {
+//        m_chunk.write_opcode (b);
         //        writeChunk(current_chunk (), byte, _parser.previous._line);
     }
     
-    void emit_bytes (opcode byte1, opcode byte2) {
+    void emit_bytes (auto byte1, auto byte2) {
         emit_byte (byte1);
         emit_byte (byte2);
     }
     
     auto advance () -> void
     {
-        _parser.previous = _parser.current;
+        m_parser.m_previous = m_parser.m_current;
         
         for (;;) {
-            _parser.current = _scanner.scan_token ();
-            if (_parser.current._type != token_type::ERROR) break;
+            m_parser.m_current = m_scanner.scan_token ();
+            if (m_parser.m_current.m_type != token_type::TOK_ERROR) break;
             
-            error_at_current(_parser.current._start);
+            error_at_current(m_parser.m_current.m_start);
         }
     }
     
@@ -323,7 +338,7 @@ private:
      */
     auto unary () -> void
     {
-        token_type operatorType = _parser.previous._type;
+        token_type operatorType = m_parser.m_previous.m_type;
         
         // Compile the operand.
         expression ();
@@ -333,8 +348,12 @@ private:
         // Emit the operator instruction.
         switch (operatorType)
         {
-            case token_type::MINUS: emit_byte(opcode::NEGATE); break;
-            default: return; // Unreachable.
+            case token_type::TOK_MINUS:
+                emit_byte (code_type::NEGATE);
+                break;
+                
+            default:
+                return; // Unreachable.
         }
     }
     

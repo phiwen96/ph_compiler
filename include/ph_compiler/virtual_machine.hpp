@@ -3,6 +3,7 @@
 #include "opcode.hpp"
 #include "version.hpp"
 #include "compiler.hpp"
+//#include "value.hpp"
 
 //using version = version <1, 0, 0>;
 
@@ -24,74 +25,74 @@ enum struct interpret_result
 
 #define MAX_STACK 256
 
-template <typename chunk>
+template <typename chunk_type>
 struct virtual_machine
 {
     using self = virtual_machine;
-    using opcode = typename chunk::opcode;
-    using constant = typename chunk::constant;
+    using code_type = typename chunk_type::code_type;
+    using value_type = typename chunk_type::value_type;
     
-    virtual_machine (char const* source) : _source {source}
+    virtual_machine (char const* source) : m_source {source}
     {
         
     }
     
     operator interpret_result ()
     {
-        chunk _chunk;
+//        chunk_type _chunk;
         
-        auto _compiler = compiler {_source, _chunk};
+        auto _compiler = compiler <chunk_type> {m_source, *m_chunk};
                 
         if (not _compiler)
         {
             return interpret_result::INTERPRET_COMPILE_ERROR;
         }
         
-        _current_opcode = _chunk.lines;
+        m_current_instruction = m_chunk -> m_code;
         
         interpret_result result = run ();
         return result;
     }
     
     
-    char const* _source;
+    char const* m_source;
     
-    chunk * _chunk;
-    opcode * _current_opcode;
+    chunk_type * m_chunk;
+    code_type * m_current_instruction;
     
-    constant _stack [MAX_STACK];
-    constant * _stack_top;
+    value_type m_stack [MAX_STACK];
+    value_type * m_top_stack;
     
     
     
     auto reset_stack () -> void
     {
-        _stack_top = _stack;
+        m_top_stack = m_stack;
     }
     
-    auto push (constant c) -> void
+    auto push (value_type c) -> void
     {
-        *_stack_top = c;
-        _stack_top++;
+        *m_top_stack = c;
+        m_top_stack++;
     }
     
-    auto pop () -> constant&
+    auto pop () -> value_type
     {
-        _stack_top--;
-        return *_stack_top;
+        m_top_stack--;
+        return *m_top_stack;
     }
-    auto top () const -> constant&
+    auto top () const -> value
     {
-        return * (_stack_top - 1);
+        return * (m_top_stack - 1);
     }
 
     
 
     
-    virtual_machine (chunk & code_file) : _chunk {&code_file}
+    virtual_machine (chunk_type & code_file) : m_chunk {&code_file}
     {
-        _current_opcode = _chunk->begin();
-        _stack_top = _stack;
+        m_current_instruction = m_chunk->begin();
+        m_top_stack = m_stack;
     }
     
     virtual_machine () //: _chunk {code_file}
@@ -102,34 +103,24 @@ struct virtual_machine
     
     
     
-    auto interpret (char const* source) -> interpret_result
-    {
-        chunk _chunk;
-        
-//        compiler <chunk> _compiler {source, _chunk};
-        auto _compiler = compiler {source, _chunk};
-//        compile (source);
-//        return interpret_result::INTERPRET_OK;
-                
-        if (not _compiler)
-        {
-            return interpret_result::INTERPRET_COMPILE_ERROR;
-        }
-        
-        
-        
-        _current_opcode = _chunk.lines;
-        
-        interpret_result result = run ();
-        return result;
-    }
+  
     
    
     
     auto run () -> interpret_result
     {
-#define READ_BYTE (*_current_opcode++)
-#define READ_CONSTANT (_chunk -> constants.constants [READ_BYTE])
+#define READ_BYTE (*m_current_instruction++)
+#define READ_CONSTANT (m_chunk -> m_constants.m_values [READ_BYTE])
+#define BINARY_OP(valueType, op) \
+    do { \
+      if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
+        runtimeError("Operands must be numbers."); \
+        return interpret_result::INTERPRET_RUNTIME_ERROR; \
+      } \
+      double b = AS_NUMBER(pop()); \
+      double a = AS_NUMBER(pop()); \
+      push(valueType(a op b)); \
+    } while (false)
         for (;;)
         {
             uint_fast8_t instruction;
@@ -138,47 +129,41 @@ struct virtual_machine
             {
                 case opcode::RETURN:
                 {
-                    cout << "return " << top () << endl;
+//                    cout << "return " << top () << endl;
                     pop ();
                     return interpret_result::INTERPRET_OK;
                 }
                     
                 case opcode::CONSTANT:
                 {
-                    constant constant = READ_CONSTANT;
+                    value_type constant = READ_CONSTANT;
                     
-                    push (constant);
-                    cout << "constant " << top () << endl;
+//                    push (constant);
+//                    cout << "constant " << top () << endl;
                     break;
                 }
                     
                 case opcode::NEGATE:
                 {
-                    cout << "negate " << top () << endl;
-                    push (-pop ());
+//                    cout << "negate " << top () << endl;
+                    if (! IS_NUMBER (peek (0)))
+                    {
+                        runtimeError ("Operand must be a number.");
+                        return interpret_result::INTERPRET_RUNTIME_ERROR;
+                    }
+                    double d = -AS_NUMBER (pop ());
+                    
+                    push (NUMBER_VAL (-AS_NUMBER (pop ())));
                     break;
                 }
                     
-                case opcode::ADD:
-                {
-                    constant c0 = pop();
-                    constant c1 = pop();
-                    push (c0 + c1);
+       
+                case code_type::ADD:      BINARY_OP (NUMBER_VAL, +); break;
+                case code_type::SUBTRACT: BINARY_OP (NUMBER_VAL, -); break;
+                case code_type::MULTIPLY: BINARY_OP (NUMBER_VAL, *); break;
+                case code_type::DIVIDE:   BINARY_OP (NUMBER_VAL, /); break;
                     
-                    cout << "add " << top () << endl;
-//                    push (-pop ());
-                    break;
-                }
-                    
-                case opcode::SUBTRACT:
-                {
-                    constant c0 = pop();
-                    constant c1 = pop();
-                    push (c0 - c1);
-                    
-                    cout << "add " << top () << endl;
-                    break;
-                }
+             
                     
                 default:
                 {
@@ -187,6 +172,27 @@ struct virtual_machine
             }
         }
     }
+    
+    auto peek (int distance) -> value
+    {
+      return m_top_stack [-1 - distance];
+    }
+    
+    auto runtimeError(const char* format, ...) -> void
+    {
+      va_list args;
+      va_start(args, format);
+      vfprintf(stderr, format, args);
+      va_end(args);
+      fputs("\n", stderr);
+
+      size_t instruction = m_current_instruction - m_chunk->m_code - 1;
+      int line = m_chunk -> m_code [instruction];
+      fprintf(stderr, "[line %d] in script\n", line);
+        reset_stack ();
+    }
+    
+    
 #undef READ_BYTE
 #undef READ_CONSTANT
 };
