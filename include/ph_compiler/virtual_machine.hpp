@@ -28,18 +28,17 @@ template <typename chunk>
 struct virtual_machine
 {
     using self = virtual_machine;
-    using chunk_type = chunk;
-    using opcode_type = typename chunk_type::opcode_type;
-    using constant_type = typename chunk_type::constant_type;
+    using opcode = typename chunk::opcode;
+    using constant = typename chunk::constant;
     
     
     
     
-    chunk_type * _code_file;
-    opcode_type * _current_opcode;
+    chunk * _chunk;
+    opcode * _current;
     
-    constant_type _stack [MAX_STACK];
-    constant_type * _stack_top;
+    constant _stack [MAX_STACK];
+    constant * _stack_top;
     
     interpret_result _result;
     
@@ -49,18 +48,18 @@ struct virtual_machine
         _stack_top = _stack;
     }
     
-    auto push (constant_type c) -> void
+    auto push (constant c) -> void
     {
         *_stack_top = c;
         _stack_top++;
     }
     
-    auto pop () -> constant_type&
+    auto pop () -> constant&
     {
         _stack_top--;
         return *_stack_top;
     }
-    auto top () const -> constant_type&
+    auto top () const -> constant&
     {
         return * (_stack_top - 1);
     }
@@ -70,13 +69,13 @@ struct virtual_machine
         return _result;
     }
     
-    virtual_machine (chunk & code_file) : _code_file {&code_file}
+    virtual_machine (chunk & code_file) : _chunk {&code_file}
     {
-        _current_opcode = _code_file->begin();
+        _current = _chunk->begin();
         _stack_top = _stack;
     }
     
-    virtual_machine () //: _code_file {code_file}
+    virtual_machine () //: _chunk {code_file}
     {
 //        'compiler c {source};
 //        _result = interpret_result::INTERPRET_OK;'
@@ -88,19 +87,20 @@ struct virtual_machine
     {
         chunk _chunk;
         
-        compiler <chunk_type> comp {source, _chunk};
+//        compiler <chunk> _compiler {source, _chunk};
+        auto _compiler = compiler {source, _chunk};
+        
 //        compile (source);
 //        return interpret_result::INTERPRET_OK;
         
-        chunk_type code_file;
+        chunk code_file;
         
-        if (!comp.compile (source, &code_file))
+        if (not _compiler)
         {
             return interpret_result::INTERPRET_COMPILE_ERROR;
         }
         
-        _code_file = &code_file;
-        _current_opcode = _code_file -> lines;
+        _current = _chunk.lines;
         
         interpret_result result = run ();
         return result;
@@ -110,8 +110,8 @@ struct virtual_machine
     
     auto run () -> interpret_result
     {
-#define READ_BYTE (*_current_opcode++)
-#define READ_CONSTANT (_code_file -> constants.constants [READ_BYTE])
+#define READ_BYTE (*_current++)
+#define READ_CONSTANT (_chunk -> constants.constants [READ_BYTE])
         for (;;)
         {
             uint_fast8_t instruction;
@@ -127,7 +127,7 @@ struct virtual_machine
                     
                 case opcode::CONSTANT:
                 {
-                    constant_type constant = READ_CONSTANT;
+                    constant constant = READ_CONSTANT;
                     
                     push (constant);
                     cout << "constant " << top () << endl;
@@ -143,8 +143,8 @@ struct virtual_machine
                     
                 case opcode::ADD:
                 {
-                    constant_type c0 = pop();
-                    constant_type c1 = pop();
+                    constant c0 = pop();
+                    constant c1 = pop();
                     push (c0 + c1);
                     
                     cout << "add " << top () << endl;
@@ -154,8 +154,8 @@ struct virtual_machine
                     
                 case opcode::SUB:
                 {
-                    constant_type c0 = pop();
-                    constant_type c1 = pop();
+                    constant c0 = pop();
+                    constant c1 = pop();
                     push (c0 - c1);
                     
                     cout << "add " << top () << endl;

@@ -100,11 +100,10 @@ struct compiler
 //    }
     
     
-    auto current_chunk() -> chunk *
+    operator bool () const
     {
-        return _chunk;
+        return !_parser.had_error;
     }
-    
     
     
     
@@ -132,7 +131,7 @@ private:
     
     uint_fast8_t make_constant (constant value)
     {
-        int constant = addConstant(current_chunk(), value);
+        int constant = addConstant(_chunk, value);
         
         if (constant > UINT8_MAX) {
             error ("Too many constants in one chunk.");
@@ -196,7 +195,7 @@ private:
      It writes the given byte, which may be an opcode or an operand to an instruction.
      */
     void emit_byte (opcode byte) {
-        current_chunk()->write_opcode (byte);
+        _chunk.write_opcode (byte);
         //        writeChunk(current_chunk (), byte, _parser.previous._line);
     }
     
