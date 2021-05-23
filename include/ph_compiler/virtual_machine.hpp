@@ -51,12 +51,12 @@ struct virtual_machine
         _stack_top++;
     }
     
-    auto pop () -> constant_type
+    auto pop () -> constant_type&
     {
         _stack_top--;
         return *_stack_top;
     }
-    auto top () const -> constant_type
+    auto top () const -> constant_type&
     {
         return * (_stack_top - 1);
     }
@@ -77,7 +77,6 @@ struct virtual_machine
 #define READ_CONSTANT (_code_file.constants.constants [READ_BYTE])
         for (;;)
         {
-            
             uint_fast8_t instruction;
 
             switch (instruction = READ_BYTE)
@@ -86,25 +85,21 @@ struct virtual_machine
                 {
                     cout << "return " << top () << endl;
                     pop ();
-//                    cout << "return" << endl;
                     return result::INTERPRET_OK;
                 }
                     
                 case opcode::CONSTANT:
                 {
                     constant_type constant = READ_CONSTANT;
-//                    constant_type constant = _code_file.constants [next_opcode];
                     
                     push (constant);
                     cout << "constant " << top () << endl;
-//                    cout << "constant " << _code_file.constants [next_opcode] << endl;
                     break;
                 }
                     
                 case opcode::NEGATE:
                 {
                     cout << "negate " << top () << endl;
-                    
                     push (-pop ());
                     break;
                 }

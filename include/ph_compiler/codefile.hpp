@@ -63,9 +63,6 @@ struct codefile
     
     auto write_opcode (opcode_type byte) -> void
     {
-//        _opcode_allocator.allocate (sizeof (opcode));
-//        return *this;
-        
         if (full ())
         {
             transform (2 * capacity);
@@ -79,7 +76,6 @@ struct codefile
     {
         constants.write_constant (byte);
         return static_cast <opcode_type> (constants.count - 1);
-//        return (constants += byte);
     }
     
 //    auto operator += (double constant) -> auto&

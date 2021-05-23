@@ -50,17 +50,21 @@ TEST_CASE("AAA")
     _codefile.write_opcode (opcode::CONSTANT);
     _codefile.write_opcode (constant_index);
     
-    constant_index = _codefile.add_constant (4);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
+    _codefile.write_opcode (opcode::NEGATE);
     
-    constant_index = _codefile.add_constant (3);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
+    _codefile.write_opcode (opcode::RETURN);
     
-    constant_index = _codefile.add_constant (2);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
+//    constant_index = _codefile.add_constant (4);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    constant_index = _codefile.add_constant (3);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    constant_index = _codefile.add_constant (2);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
     
 //    constant_index = _codefile.add_constant (3);
 //    _codefile.write_opcode (opcode::CONSTANT);
