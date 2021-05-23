@@ -41,71 +41,91 @@ using namespace std;
 
 TEST_CASE("AAA")
 {
+    compiler c (__FILE__);
     
     
     codefile <opcode, double> _codefile;
     
-    
-    auto constant_index = _codefile.add_constant (5);
+    auto constant_index = _codefile.add_constant (6);
     _codefile.write_opcode (opcode::CONSTANT);
     _codefile.write_opcode (constant_index);
     
-    _codefile.write_opcode (opcode::NEGATE);
+    constant_index = _codefile.add_constant (5);
+    _codefile.write_opcode (opcode::CONSTANT);
+    _codefile.write_opcode (constant_index);
+    
+    _codefile.write_opcode (opcode::ADD);
+    
+    constant_index = _codefile.add_constant (6);
+    _codefile.write_opcode (opcode::CONSTANT);
+    _codefile.write_opcode (constant_index);
+    
+    constant_index = _codefile.add_constant (6);
+    _codefile.write_opcode (opcode::CONSTANT);
+    _codefile.write_opcode (constant_index);
+    
+    _codefile.write_opcode (opcode::SUB);
+    
+    
+    
+    
+    
+    //    _codefile.write_opcode (opcode::NEGATE);
     
     _codefile.write_opcode (opcode::RETURN);
     
-//    constant_index = _codefile.add_constant (4);
-//    _codefile.write_opcode (opcode::CONSTANT);
-//    _codefile.write_opcode (constant_index);
-//
-//    constant_index = _codefile.add_constant (3);
-//    _codefile.write_opcode (opcode::CONSTANT);
-//    _codefile.write_opcode (constant_index);
-//
-//    constant_index = _codefile.add_constant (2);
-//    _codefile.write_opcode (opcode::CONSTANT);
-//    _codefile.write_opcode (constant_index);
+    //    constant_index = _codefile.add_constant (4);
+    //    _codefile.write_opcode (opcode::CONSTANT);
+    //    _codefile.write_opcode (constant_index);
+    //
+    //    constant_index = _codefile.add_constant (3);
+    //    _codefile.write_opcode (opcode::CONSTANT);
+    //    _codefile.write_opcode (constant_index);
+    //
+    //    constant_index = _codefile.add_constant (2);
+    //    _codefile.write_opcode (opcode::CONSTANT);
+    //    _codefile.write_opcode (constant_index);
     
-//    constant_index = _codefile.add_constant (3);
-//    _codefile.write_opcode (opcode::CONSTANT);
-//    _codefile.write_opcode (constant_index);
-    
-    
+    //    constant_index = _codefile.add_constant (3);
+    //    _codefile.write_opcode (opcode::CONSTANT);
+    //    _codefile.write_opcode (constant_index);
     
     
-//    _codefile +=
     
     
-//    _codefile += opcode::NEGATE;
-    
-//    constant = _codefile += 4;
-////    cout << constant << endl;
-//    _codefile += opcode::CONSTANT;
-//    _codefile += constant;
-//
-//    _codefile += opcode::RETURN;
+    //    _codefile +=
     
     
-//
-//
-//    _codefile += opcode::NEGATE;
-//
-//    _codefile += 3;
-//    _codefile += opcode::CONSTANT;
-//
-//
-//    _codefile += opcode::NEGATE;
-////    _codefile += 4;
-//
-////    _codefile += opcode::NEGATE;
-////    _codefile += 4;
-//    _codefile += opcode::RETURN;
+    //    _codefile += opcode::NEGATE;
+    
+    //    constant = _codefile += 4;
+    ////    cout << constant << endl;
+    //    _codefile += opcode::CONSTANT;
+    //    _codefile += constant;
+    //
+    //    _codefile += opcode::RETURN;
+    
+    
+    //
+    //
+    //    _codefile += opcode::NEGATE;
+    //
+    //    _codefile += 3;
+    //    _codefile += opcode::CONSTANT;
+    //
+    //
+    //    _codefile += opcode::NEGATE;
+    ////    _codefile += 4;
+    //
+    ////    _codefile += opcode::NEGATE;
+    ////    _codefile += 4;
+    //    _codefile += opcode::RETURN;
     
     virtual_machine _vm {_codefile};
     _vm.run();
     
     
-//    cout << disassembler {_codefile} << endl;
+    //    cout << disassembler {_codefile} << endl;
     
     
     
@@ -115,34 +135,34 @@ TEST_CASE("AAA")
     
     
     
-
-//    virtual_machine <>
+    
+    //    virtual_machine <>
     
     
     
     
     
     
-
-//    codefile <version> f0;
-//    f0.push_back (opcode::CONSTANT);
-//    f0.push_back (4);
-//    f0.push_back (opcode::RETURN);
-
     
-    
-//    virtual_machine <version> vm {f0};
+    //    codefile <version> f0;
+    //    f0.push_back (opcode::CONSTANT);
+    //    f0.push_back (4);
+    //    f0.push_back (opcode::RETURN);
     
     
     
+    //    virtual_machine <version> vm {f0};
     
     
-//    b0 += instruction::RETURN;
-//    b0 += instruction::RETURN;
-//    b0 += instruction::CONSTANT;
-//    b0 += 4;
-//    cout << disassembler {f0} << endl;
-//    vm.run <version> ();
+    
+    
+    
+    //    b0 += instruction::RETURN;
+    //    b0 += instruction::RETURN;
+    //    b0 += instruction::CONSTANT;
+    //    b0 += 4;
+    //    cout << disassembler {f0} << endl;
+    //    vm.run <version> ();
 }
 
 

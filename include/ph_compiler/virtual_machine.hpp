@@ -104,6 +104,27 @@ struct virtual_machine
                     break;
                 }
                     
+                case opcode::ADD:
+                {
+                    constant_type c0 = pop();
+                    constant_type c1 = pop();
+                    push (c0 + c1);
+                    
+                    cout << "add " << top () << endl;
+//                    push (-pop ());
+                    break;
+                }
+                    
+                case opcode::SUB:
+                {
+                    constant_type c0 = pop();
+                    constant_type c1 = pop();
+                    push (c0 - c1);
+                    
+                    cout << "add " << top () << endl;
+                    break;
+                }
+                    
                 default:
                 {
                     return result::INTERPRET_COMPILE_ERROR;
