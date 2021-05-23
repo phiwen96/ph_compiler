@@ -39,7 +39,7 @@ using namespace std;
 
 struct app
 {
-    using codefile = chunk <opcode, double>;
+    using chunk = chunk <opcode, double>;
     
     char* _path;
     interpret_result _result;
@@ -60,8 +60,8 @@ private:
     
     inline static auto run_file (char const* path) -> void
     {
-        char* source = read_file (path);
-        interpret_result result = virtual_machine <codefile> {}.interpret (source);
+        auto source = read_file (path);
+        auto result = (interpret_result) virtual_machine <chunk> {source};
         
         free (source);
         
@@ -110,12 +110,12 @@ private:
 
 TEST_CASE("AAA")
 {
-    char szOrbits[] = "365.243434589";
-      char* pEnd;
-      double d1, d2;
-      d1 = strtod (szOrbits, &pEnd);
-      d2 = strtod (pEnd, NULL);
-    cout << d1 << endl << d2 << endl;
+//    char szOrbits[] = "365.243434589";
+//      char* pEnd;
+//      double d1, d2;
+//      d1 = strtod (szOrbits, &pEnd);
+//      d2 = strtod (pEnd, NULL);
+//    cout << d1 << endl << d2 << endl;
 //      printf ("The moon completes %.2f orbits per Earth year.\n", d1/d2);
     
     auto path = filesystem::path (__FILE__).parent_path() / filesystem::path {"test_file_0.hpp"};

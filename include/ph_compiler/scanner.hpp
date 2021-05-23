@@ -13,27 +13,27 @@
 using namespace std;
 
 
-enum struct token_type
+enum token_type
 {
     // Single-character tokens.
-    TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
-    TOKEN_LEFT_BRACE, TOKEN_RIGHT_BRACE,
-    TOKEN_COMMA, TOKEN_DOT, TOKEN_MINUS, TOKEN_PLUS,
-    TOKEN_SEMICOLON, TOKEN_SLASH, TOKEN_STAR,
+    LEFT_PAREN, RIGHT_PAREN,
+    LEFT_BRACE, RIGHT_BRACE,
+    COMMA, DOT, MINUS, PLUS,
+    SEMICOLON, SLASH, STAR,
     // One or two character tokens.
-    TOKEN_BANG, TOKEN_BANG_EQUAL,
-    TOKEN_EQUAL, TOKEN_EQUAL_EQUAL,
-    TOKEN_GREATER, TOKEN_GREATER_EQUAL,
-    TOKEN_LESS, TOKEN_LESS_EQUAL,
+    BANG, BANG_EQUAL,
+    EQUAL, EQUAL_EQUAL,
+    GREATER, GREATER_EQUAL,
+    LESS, LESS_EQUAL,
     // Literals.
-    TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_NUMBER,
+    IDENTIFIER, STRING, NUMBER,
     // Keywords.
-    TOKEN_AND, TOKEN_CLASS, TOKEN_ELSE, TOKEN_FALSE,
-    TOKEN_FOR, TOKEN_FUN, TOKEN_IF, TOKEN_NIL, TOKEN_OR,
-    TOKEN_PRINT, TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,
-    TOKEN_TRUE, TOKEN_VAR, TOKEN_WHILE,
+    AND, CLASS, ELSE, FALSE,
+    FOR, FUN, IF, NIL, OR,
+    PRINT, _RETURN, SUPER, THIS,
+    TRUE, VAR, WHILE,
     
-    TOKEN_ERROR, TOKEN_EOF
+    ERROR, _EOF
 };
 
 struct token
@@ -59,11 +59,13 @@ struct scanner
     auto scan_token () -> token
     {
         skip_whitespaces ();
+        
         _start = _current;
         
+        // check to see if we’ve reached the end of the source code
         if (is_at_end ())
         {
-            return make_token (token_type::TOKEN_EOF);
+            return make_token (token_type::_EOF);
         }
         
         char c = advance ();
@@ -81,25 +83,25 @@ struct scanner
         
         switch (c)
         {
-            case '(': return make_token (token_type::TOKEN_LEFT_PAREN);
-            case ')': return make_token (token_type::TOKEN_RIGHT_PAREN);
-            case '{': return make_token (token_type::TOKEN_LEFT_BRACE);
-            case '}': return make_token (token_type::TOKEN_RIGHT_BRACE);
-            case ';': return make_token (token_type::TOKEN_SEMICOLON);
-            case ',': return make_token (token_type::TOKEN_COMMA);
-            case '.': return make_token (token_type::TOKEN_DOT);
-            case '-': return make_token (token_type::TOKEN_MINUS);
-            case '+': return make_token (token_type::TOKEN_PLUS);
-            case '/': return make_token (token_type::TOKEN_SLASH);
-            case '*': return make_token (token_type::TOKEN_STAR);
+            case '(': return make_token (token_type::LEFT_PAREN);
+            case ')': return make_token (token_type::RIGHT_PAREN);
+            case '{': return make_token (token_type::LEFT_BRACE);
+            case '}': return make_token (token_type::RIGHT_BRACE);
+            case ';': return make_token (token_type::SEMICOLON);
+            case ',': return make_token (token_type::COMMA);
+            case '.': return make_token (token_type::DOT);
+            case '-': return make_token (token_type::MINUS);
+            case '+': return make_token (token_type::PLUS);
+            case '/': return make_token (token_type::SLASH);
+            case '*': return make_token (token_type::STAR);
             case '!':
-                return make_token (match ('=') ? token_type::TOKEN_BANG_EQUAL : token_type::TOKEN_BANG);
+                return make_token (match ('=') ? token_type::BANG_EQUAL : token_type::BANG);
             case '=':
-                return make_token (match ('=') ? token_type::TOKEN_EQUAL_EQUAL : token_type::TOKEN_EQUAL);
+                return make_token (match ('=') ? token_type::EQUAL_EQUAL : token_type::EQUAL);
             case '<':
-                return make_token (match ('=') ? token_type::TOKEN_LESS_EQUAL : token_type::TOKEN_LESS);
+                return make_token (match ('=') ? token_type::LESS_EQUAL : token_type::LESS);
             case '>':
-                return make_token (match ('=') ? token_type::TOKEN_GREATER_EQUAL : token_type::TOKEN_GREATER);
+                return make_token (match ('=') ? token_type::GREATER_EQUAL : token_type::GREATER);
                 
             case '"':
                 return string ();
@@ -107,6 +109,7 @@ struct scanner
         
         return error_token ("Unexpected character.");
     }
+    
     
 private:
     
@@ -116,51 +119,51 @@ private:
         {
             return type;
         }
-        return token_type::TOKEN_IDENTIFIER;
+        return token_type::IDENTIFIER;
     }
     auto identifier_type () -> token_type
     {
         switch (_start [0])
         {
-            case 'a': return check_keyword (1, 2, "nd", token_type::TOKEN_AND);
-            case 'c': return check_keyword (1, 4, "lass", token_type::TOKEN_CLASS);
-            case 'e': return check_keyword (1, 3, "lse", token_type::TOKEN_ELSE);
+            case 'a': return check_keyword (1, 2, "nd", token_type::AND);
+            case 'c': return check_keyword (1, 4, "lass", token_type::CLASS);
+            case 'e': return check_keyword (1, 3, "lse", token_type::ELSE);
             case 'f':
                   if (_current - _start > 1)
                   {
                     switch (_start [1])
                     {
-                        case 'a': return check_keyword (2, 3, "lse", token_type::TOKEN_FALSE);
-                        case 'o': return check_keyword (2, 1, "r", token_type::TOKEN_FOR);
-                        case 'u': return check_keyword (2, 1, "n", token_type::TOKEN_FUN);
+                        case 'a': return check_keyword (2, 3, "lse", token_type::FALSE);
+                        case 'o': return check_keyword (2, 1, "r", token_type::FOR);
+                        case 'u': return check_keyword (2, 1, "n", token_type::FUN);
                     }
                   }
                   break;
-            case 'i': return check_keyword (1, 1, "f", token_type::TOKEN_IF);
-            case 'n': return check_keyword (1, 2, "il", token_type::TOKEN_NIL);
-            case 'o': return check_keyword (1, 1, "r", token_type::TOKEN_OR);
-            case 'p': return check_keyword (1, 4, "rint", token_type::TOKEN_PRINT);
-            case 'r': return check_keyword (1, 5, "eturn", token_type::TOKEN_RETURN);
-            case 's': return check_keyword (1, 4, "uper", token_type::TOKEN_SUPER);
+            case 'i': return check_keyword (1, 1, "f", token_type::IF);
+            case 'n': return check_keyword (1, 2, "il", token_type::NIL);
+            case 'o': return check_keyword (1, 1, "r", token_type::OR);
+            case 'p': return check_keyword (1, 4, "rint", token_type::PRINT);
+            case 'r': return check_keyword (1, 5, "eturn", token_type::_RETURN);
+            case 's': return check_keyword (1, 4, "uper", token_type::SUPER);
             case 't':
                   if (_current - _start > 1)
                   {
                     switch (_start [1])
                     {
-                        case 'h': return check_keyword (2, 2, "is", token_type::TOKEN_THIS);
-                        case 'r': return check_keyword (2, 2, "ue", token_type::TOKEN_TRUE);
+                        case 'h': return check_keyword (2, 2, "is", token_type::THIS);
+                        case 'r': return check_keyword (2, 2, "ue", token_type::TRUE);
                     }
                   }
                   break;
-            case 'v': return check_keyword (1, 2, "ar", token_type::TOKEN_VAR);
-            case 'w': return check_keyword (1, 4, "hile", token_type::TOKEN_WHILE);
+            case 'v': return check_keyword (1, 2, "ar", token_type::VAR);
+            case 'w': return check_keyword (1, 4, "hile", token_type::WHILE);
         }
         
-        return token_type::TOKEN_IDENTIFIER;
+        return token_type::IDENTIFIER;
     }
     auto identifier() -> token
     {
-        while (is_alpha(peek()) || isdigit(peek ())) advance ();
+        while (is_alpha (peek ()) or isdigit (peek ())) advance ();
         return make_token (identifier_type ());
     }
     auto is_alpha (char c) -> bool
@@ -185,8 +188,10 @@ private:
                 advance ();
             }
         }
-        return make_token (token_type::TOKEN_NUMBER);
+        return make_token (token_type::NUMBER);
     }
+    
+    // consume characters until we reach the closing quote
     auto string () -> token
     {
         while (peek () != '"' and ! is_at_end ())
@@ -197,6 +202,7 @@ private:
                 advance ();
             }
         }
+        
         if (is_at_end ())
         {
             return error_token ("Unterminated string.");
@@ -204,7 +210,7 @@ private:
         
         // The closing quote.
         advance ();
-        return make_token (token_type::TOKEN_STRING);
+        return make_token (token_type::STRING);
     }
     auto skip_whitespaces () -> void
     {
@@ -253,7 +259,7 @@ private:
     {
         return *_current;
     }
-    // if found, consume and return it
+    // If the current character is the desired one, we advance and return true. Otherwise, we return false to indicate it wasn’t matched.
     auto match (char expected) -> bool
     {
         if (is_at_end ()) return false;
@@ -261,6 +267,8 @@ private:
         ++_current;
         return true;
     }
+    
+    // consumes the current character and returns it.
     auto advance () -> char
     {
         ++_current;
@@ -271,14 +279,16 @@ private:
         return *_current == '\0';
     }
     
+    
+    // It uses the scanner’s start and current pointers to capture the token’s lexeme.
     inline auto make_token (token_type type) -> token
     {
         return token
         {
             ._type = type,
-            ._start = this -> _start,
-            ._length = (int) (this -> _current - this -> _start),
-            ._line = this -> _line
+            ._start = _start,
+            ._length = (int) (_current - _start),
+            ._line = _line
         };
     }
     
@@ -286,7 +296,7 @@ private:
     {
         return
         {
-            ._type = token_type::TOKEN_ERROR,
+            ._type = token_type::ERROR,
             ._start = message,
             ._length = (int) strlen (message),
             ._line = _line

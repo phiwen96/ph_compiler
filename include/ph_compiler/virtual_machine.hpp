@@ -31,16 +31,37 @@ struct virtual_machine
     using opcode = typename chunk::opcode;
     using constant = typename chunk::constant;
     
+    virtual_machine (char const* source) : _source {source}
+    {
+        
+    }
+    
+    operator interpret_result ()
+    {
+        chunk _chunk;
+        
+        auto _compiler = compiler {_source, _chunk};
+                
+        if (not _compiler)
+        {
+            return interpret_result::INTERPRET_COMPILE_ERROR;
+        }
+        
+        _current_opcode = _chunk.lines;
+        
+        interpret_result result = run ();
+        return result;
+    }
     
     
+    char const* _source;
     
     chunk * _chunk;
-    opcode * _current;
+    opcode * _current_opcode;
     
     constant _stack [MAX_STACK];
     constant * _stack_top;
     
-    interpret_result _result;
     
     
     auto reset_stack () -> void
@@ -65,13 +86,11 @@ struct virtual_machine
     }
 
     
-    operator interpret_result () {
-        return _result;
-    }
+
     
     virtual_machine (chunk & code_file) : _chunk {&code_file}
     {
-        _current = _chunk->begin();
+        _current_opcode = _chunk->begin();
         _stack_top = _stack;
     }
     
@@ -89,18 +108,17 @@ struct virtual_machine
         
 //        compiler <chunk> _compiler {source, _chunk};
         auto _compiler = compiler {source, _chunk};
-        
 //        compile (source);
 //        return interpret_result::INTERPRET_OK;
-        
-        chunk code_file;
-        
+                
         if (not _compiler)
         {
             return interpret_result::INTERPRET_COMPILE_ERROR;
         }
         
-        _current = _chunk.lines;
+        
+        
+        _current_opcode = _chunk.lines;
         
         interpret_result result = run ();
         return result;
@@ -110,7 +128,7 @@ struct virtual_machine
     
     auto run () -> interpret_result
     {
-#define READ_BYTE (*_current++)
+#define READ_BYTE (*_current_opcode++)
 #define READ_CONSTANT (_chunk -> constants.constants [READ_BYTE])
         for (;;)
         {
@@ -152,7 +170,7 @@ struct virtual_machine
                     break;
                 }
                     
-                case opcode::SUB:
+                case opcode::SUBTRACT:
                 {
                     constant c0 = pop();
                     constant c1 = pop();
