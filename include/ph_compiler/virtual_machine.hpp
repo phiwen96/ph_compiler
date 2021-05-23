@@ -86,8 +86,22 @@ struct virtual_machine
     
     auto interpret (char const* source) -> interpret_result
     {
-        compiler {}.compile (source);
-        return interpret_result::INTERPRET_OK;
+        compiler <codefile_type> comp {};
+//        compile (source);
+//        return interpret_result::INTERPRET_OK;
+        
+        codefile_type code_file;
+        
+        if (!comp.compile (source, &code_file))
+        {
+            return interpret_result::INTERPRET_COMPILE_ERROR;
+        }
+        
+        _code_file = &code_file;
+        _current_opcode = _code_file -> lines;
+        
+        interpret_result result = run ();
+        return result;
     }
     
    
