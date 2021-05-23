@@ -32,16 +32,16 @@ struct compiler
     
     struct parser
     {
-      token current;
-      token previous;
+        token current;
+        token previous;
         bool had_error;
         bool panic_mode;
     };
     
     parser _parser;
     
-    codefile_type* _compiling_chunk;
-
+    codefile_type& _compiling_chunk;
+    
     
     auto compile (char const* source) -> void
     {
@@ -63,7 +63,7 @@ struct compiler
         }
     }
     
-    auto compile (const char* source, codefile_type* chunk) -> bool
+    compiler (const char* source, codefile_type& chunk)
     {
         scanner sc {source};
         
@@ -75,14 +75,31 @@ struct compiler
         
         advance (sc);
         expression ();
-          consume (sc, token_type::TOKEN_EOF, "Expect end of expression.");
+        consume (sc, token_type::TOKEN_EOF, "Expect end of expression.");
         end_compiler ();
         return !_parser.had_error;
     }
-
+    
+//    auto compile (const char* source, codefile_type* chunk) -> bool
+//    {
+//        scanner sc {source};
+//
+//        _compiling_chunk = chunk;
+//
+//        _parser.had_error = false;
+//        _parser.panic_mode = false;
+//
+//
+//        advance (sc);
+//        expression ();
+//        consume (sc, token_type::TOKEN_EOF, "Expect end of expression.");
+//        end_compiler ();
+//        return !_parser.had_error;
+//    }
+    
     
     codefile_type* current_chunk() {
-      return _compiling_chunk;
+        return _compiling_chunk;
     }
     
     
@@ -92,106 +109,145 @@ struct compiler
 private:
     
     void expression() {
-      // What goes here?
+        // What goes here?
     }
     
     void end_compiler () {
-      emit_return ();
+        emit_return ();
     }
     
-    void number() {
+    auto number() -> void
+    {
         constant_type value = strtod (_parser.previous.start, NULL);
-      emit_constant (value);
+        emit_constant (value);
     }
     
-    void emit_constant (constant_type value) {
-      emit_bytes (codefile_type::OP_CONSTANT, make_constant (value));
+    auto emit_constant (constant_type value) -> void
+    {
+        emit_bytes (codefile_type::OP_CONSTANT, make_constant (value));
     }
     
-    uint_fast8_t make_constant (constant_type value) {
-      int constant = addConstant(current_chunk(), value);
-      if (constant > UINT8_MAX) {
-        error ("Too many constants in one chunk.");
-        return 0;
-      }
-
-      return (uint_fast8_t) constant;
+    uint_fast8_t make_constant (constant_type value)
+    {
+        int constant = addConstant(current_chunk(), value);
+        
+        if (constant > UINT8_MAX) {
+            error ("Too many constants in one chunk.");
+            return 0;
+        }
+        
+        return (uint_fast8_t) constant;
     }
     
     void emit_return() {
         emit_byte (opcode_type::RETURN);
     }
     
-   
+    
     
     void error_at_current (const char* message)
     {
-      error_at(&_parser.current, message);
+        error_at(&_parser.current, message);
     }
     
     void error (const char* message) {
-      error_at(&_parser.previous, message);
+        error_at(&_parser.previous, message);
     }
     
     void error_at (token* tok, const char* message) {
         if (_parser.panic_mode) return;
         _parser.panic_mode = true;
-      fprintf(stderr, "[line %d] Error", tok->_line);
-
-      if (tok->_type == token_type::TOKEN_EOF) {
-        fprintf(stderr, " at end");
-      } else if (tok->_type == token_type::TOKEN_ERROR) {
-        // Nothing.
-      } else {
-        fprintf(stderr, " at '%.*s'", tok->_length, tok->_start);
-      }
-
-      fprintf(stderr, ": %s\n", message);
-      _parser.had_error = true;
+        fprintf(stderr, "[line %d] Error", tok->_line);
+        
+        if (tok->_type == token_type::TOKEN_EOF) {
+            fprintf(stderr, " at end");
+        } else if (tok->_type == token_type::TOKEN_ERROR) {
+            // Nothing.
+        } else {
+            fprintf(stderr, " at '%.*s'", tok->_length, tok->_start);
+        }
+        
+        fprintf(stderr, ": %s\n", message);
+        _parser.had_error = true;
     }
     
     void consume (scanner& sc, token_type type, const char* message) {
-      if (_parser.current._type == type) {
-        advance (sc);
-        return;
-      }
-
-      error_at_current (message);
+        if (_parser.current._type == type) {
+            advance (sc);
+            return;
+        }
+        
+        error_at_current (message);
     }
     
+    auto grouping () -> void
+    {
+        expression ();
+        // We recursively call back into expression()
+        // to compile the expression between the parentheses,
+        // then parse the closing ) at the end.
+        consume (token_type::TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+    }
+    
+    /*
+     It writes the given byte, which may be an opcode or an operand to an instruction.
+     */
     void emit_byte (opcode_type byte) {
         current_chunk()->write_opcode (byte);
-//        writeChunk(current_chunk (), byte, _parser.previous._line);
+        //        writeChunk(current_chunk (), byte, _parser.previous._line);
     }
     
     void emit_bytes(uint_fast8_t byte1, uint_fast8_t byte2) {
-      emit_byte (byte1);
-      emit_byte (byte2);
+        emit_byte (byte1);
+        emit_byte (byte2);
     }
     
     auto advance (scanner& sc) -> void
     {
-      _parser.previous = _parser.current;
-
-      for (;;) {
-        _parser.current = sc.scan_token ();
-        if (_parser.current._type != token_type::TOKEN_ERROR) break;
-
-        error_at_current(_parser.current._start);
-      }
+        _parser.previous = _parser.current;
+        
+        for (;;) {
+            _parser.current = sc.scan_token ();
+            if (_parser.current._type != token_type::TOKEN_ERROR) break;
+            
+            error_at_current(_parser.current._start);
+        }
     }
     
     inline static auto run_file (char const* path) -> void
     {
         char* source = read_file (path);
-//        interpret_result result =
+        //        interpret_result result =
     }
-//    inline static interpret_result interpret (char const* source)
-//    {
-//        compile (source);
-//        return
-//    }
-//
+    //      inline static interpret_result interpret (char const* source)
+    //              {
+    //                  compile (source);
+    //        return
+    //    }
+    //
+    
+    
+    /**
+     The leading - token has been consumed and is sitting in parser.previous. We grab the token type from that to note which unary operator we’re dealing with.
+     */
+    auto unary () -> void
+    {
+        token_type operatorType = _parser.previous._type;
+        
+        // Compile the operand.
+        expression ();
+        
+        // Emit the operator instruction.
+        switch (operatorType)
+        {
+            case token_type::TOKEN_MINUS: emit_byte(opcode_type::NEGATE); break;
+            default: return; // Unreachable.
+        }
+    }
+    
+    
+    
+    
     inline static char* read_file (const char* path) {
         FILE* file = fopen (path, "rb");
         

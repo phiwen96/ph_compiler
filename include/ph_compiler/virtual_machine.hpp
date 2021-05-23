@@ -86,6 +86,8 @@ struct virtual_machine
     
     auto interpret (char const* source) -> interpret_result
     {
+        
+        
         compiler <codefile_type> comp {};
 //        compile (source);
 //        return interpret_result::INTERPRET_OK;

@@ -110,6 +110,14 @@ private:
 
 TEST_CASE("AAA")
 {
+    char szOrbits[] = "365.243434589";
+      char* pEnd;
+      double d1, d2;
+      d1 = strtod (szOrbits, &pEnd);
+      d2 = strtod (pEnd, NULL);
+    cout << d1 << endl << d2 << endl;
+//      printf ("The moon completes %.2f orbits per Earth year.\n", d1/d2);
+    
     auto path = filesystem::path (__FILE__).parent_path() / filesystem::path {"test_file_0.hpp"};
     app _app {path.c_str()};
     _app.run();
