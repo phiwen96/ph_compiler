@@ -23,6 +23,7 @@ enum struct interpret_result
 
 
 
+
 #define MAX_STACK 256
 
 template <typename chunk_type>
@@ -42,6 +43,7 @@ struct virtual_machine
 //        chunk_type _chunk;
         
         auto _compiler = compiler <chunk_type> {m_source, *m_chunk};
+        
                 
         if (not _compiler)
         {

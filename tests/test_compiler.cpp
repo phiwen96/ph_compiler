@@ -37,6 +37,8 @@ using namespace std;
 
 
 
+
+
 struct app
 {
     using chunk = chunk <opcode, value, signed>;
@@ -61,6 +63,7 @@ private:
     inline static auto run_file (char const* path) -> void
     {
         auto source = read_file (path);
+        
         auto result = (interpret_result) virtual_machine <chunk> {source};
         
         free (source);
@@ -104,12 +107,154 @@ private:
 };
 
 
+template <typename code>
+struct vm
+{
+    code& m_code;
+    
+};
 
 
+
+template <typename T>
+struct sequence
+{
+    sequence () : m_begin {nullptr}, m_end {nullptr}, m_current {nullptr}
+    {
+        
+    }
+    
+    auto operator* () -> T&
+    {
+        return m_current;
+    }
+    
+    auto capacity () const
+    {
+        return m_end - m_begin;
+    }
+    
+    auto active () const
+    {
+        return m_current - m_begin;
+    }
+    
+    auto begin () -> T*&
+    {
+        return m_begin;
+    }
+    
+    auto end () -> T*&
+    {
+        return m_end;
+    }
+    
+    auto operator= (auto&& other)
+    {
+        m_current = forward <decltype (other)> (other);
+    }
+    
+    auto operator+= (auto&& i)
+    {
+        m_current += std::forward <decltype (i)> (i);
+    }
+    
+    auto operator-= (auto&& i)
+    {
+        m_current -= std::forward <decltype (i)> (i);
+    }
+    
+    auto operator*= (auto&& i)
+    {
+        m_current *= std::forward <decltype (i)> (i);
+    }
+    
+    auto operator/= (auto&& i)
+    {
+        m_current /= std::forward <decltype (i)> (i);
+    }
+    
+    auto operator--(auto&& i) -> sequence&
+    {
+        m_current -= std::forward <decltype (i)> (i);
+    }
+    
+    
+    
+    
+    
+//private:
+    T* m_begin;
+    T* m_end;
+    T* m_current;
+};
+
+template <typename instruction, typename value>
+struct code
+{
+    
+    
+    auto operator+= (instruction i) -> code&
+    {
+        m_instructions.push_back (i);
+        return *this;
+    }
+    
+    auto operator+= (value v) -> code&
+    {
+        m_values.push_back (v);
+        return *this;
+    }
+    
+    
+//    auto operator* () -> instruction
+//    {
+//        return *()
+//    }
+    
+    
+private:
+    sequence <instruction> m_instructions;
+    sequence <value> m_values;
+    
+};
+
+TEST_CASE ("sequence")
+{
+    sequence <int> s;
+    REQUIRE (s.capacity() == 0);
+    REQUIRE (s.active() == 0);
+    
+    s.begin() = (int*) aligned_alloc (alignof (int), sizeof (int) * 10);
+    s.end() = s.begin() + 10;
+    
+    REQUIRE (s.capacity() == 10);
+    
+    s = s.begin();
+    REQUIRE (s.active() == 0);
+//    s +=
+    s = s.begin () + 2;
+    
+    REQUIRE (s.active() == 2);
+    s += 2;
+    
+    REQUIRE (s.active() == 4);
+    
+}
+
+TEST_CASE("")
+{
+    code <uint8_t, double> m_code;
+    vm <code <uint8_t, double>> m_vm {m_code};
+    
+}
 
 
 TEST_CASE("AAA")
 {
+    return;
+    
+    
 //    char szOrbits[] = "365.243434589";
 //      char* pEnd;
 //      double d1, d2;

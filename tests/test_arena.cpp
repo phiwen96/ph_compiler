@@ -15,18 +15,18 @@ TEST_CASE ("align up")
 //    using version = version <1, 0, 0>;
     
     
-    using arena = arena <std::byte, alignof (std::byte), 10>;
+//    using arena = arena <std::byte, alignof (std::byte), 10>;
     
-    using allocator = allo <arena>;
-    arena _arena;
-    
-    allo {_arena};
-    
-    
+//    using allocator = allo <arena>;
+//    arena _arena;
+//
+//    allo {_arena};
     
     
     
-    std::byte* b0 = _arena.allocate (8);
+    
+    
+//    std::byte* b0 = _arena.allocate (8);
     
     
 
