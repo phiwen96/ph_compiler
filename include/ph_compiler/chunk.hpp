@@ -27,7 +27,7 @@ using namespace std;
 
 //template <typename opcode_allo, typename constants_allo>
 template <typename _opcode_type, typename _constant_type>
-struct codefile
+struct chunk
 {
     using opcode_type = _opcode_type;
     using constant_type = _constant_type;
@@ -56,7 +56,7 @@ struct codefile
 //        using reference         = int&;  // or also value_type&
 //    };
     
-    codefile () : count {0}, capacity {8}, lines {(opcode_type *) malloc (sizeof (lines ) * 8)}, constants {} {
+    chunk () : count {0}, capacity {8}, lines {(opcode_type *) malloc (sizeof (lines ) * 8)}, constants {} {
         if (lines == nullptr) throw runtime_error ("failed to allocate the requested block of memory");
     }
 
@@ -96,7 +96,7 @@ struct codefile
     
     
     
-    ~codefile () {
+    ~chunk () {
         free (lines);
     }
     
