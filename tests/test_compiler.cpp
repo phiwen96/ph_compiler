@@ -37,34 +37,112 @@ using namespace std;
 
 
 
+struct app
+{
+    using codefile = codefile <opcode, double>;
+    
+    char* _path;
+    interpret_result _result;
+    
+    app (char const * path)
+    {
+        _path = (char*) malloc (strlen (path) + 1);
+        strcpy (_path, path);
+    }
+    
+    auto run () -> void
+    {
+        run_file (_path);
+    }
+    
+    
+private:
+    
+    inline static auto run_file (char const* path) -> void
+    {
+        char* source = read_file (path);
+        interpret_result result = virtual_machine <codefile> {}.interpret (source);
+        
+        free (source);
+        
+        if (result == interpret_result::INTERPRET_COMPILE_ERROR) exit (65);
+        if (result == interpret_result::INTERPRET_RUNTIME_ERROR) exit (70);
+    }
+
+    inline static char* read_file (const char* path) {
+        FILE* file = fopen (path, "rb");
+        
+        if (file == NULL) {
+            fprintf(stderr, "Could not open file \"%s\".\n", path);
+            exit(74);
+        }
+        
+        fseek (file, 0L, SEEK_END);
+        size_t fileSize = ftell (file);
+        rewind (file);
+        
+        char* buffer = (char*) malloc (fileSize + 1);
+        
+        if (buffer == NULL) {
+            fprintf(stderr, "Not enough memory to read \"%s\".\n", path);
+            exit(74);
+        }
+        
+        size_t bytesRead = fread (buffer, sizeof (char), fileSize, file);
+        
+        if (bytesRead < fileSize) {
+            fprintf(stderr, "Could not read file \"%s\".\n", path);
+            exit(74);
+        }
+        
+        
+        buffer [bytesRead] = '\0';
+        
+        fclose (file);
+        return buffer;
+    }
+};
+
+
+
+
 
 
 TEST_CASE("AAA")
 {
-    compiler c (__FILE__);
+    auto path = filesystem::path (__FILE__).parent_path() / filesystem::path {"test_file_0.hpp"};
+    app _app {path.c_str()};
+    _app.run();
     
     
-    codefile <opcode, double> _codefile;
     
-    auto constant_index = _codefile.add_constant (6);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
+//
+//
+//
+//    return 0;
     
-    constant_index = _codefile.add_constant (5);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
     
-    _codefile.write_opcode (opcode::ADD);
+//    codefile <opcode, double> _codefile;
     
-    constant_index = _codefile.add_constant (6);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
-    
-    constant_index = _codefile.add_constant (6);
-    _codefile.write_opcode (opcode::CONSTANT);
-    _codefile.write_opcode (constant_index);
-    
-    _codefile.write_opcode (opcode::SUB);
+//    auto constant_index = _codefile.add_constant (6);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    constant_index = _codefile.add_constant (5);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    _codefile.write_opcode (opcode::ADD);
+//
+//    constant_index = _codefile.add_constant (6);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    constant_index = _codefile.add_constant (6);
+//    _codefile.write_opcode (opcode::CONSTANT);
+//    _codefile.write_opcode (constant_index);
+//
+//    _codefile.write_opcode (opcode::SUB);
     
     
     
@@ -72,57 +150,11 @@ TEST_CASE("AAA")
     
     //    _codefile.write_opcode (opcode::NEGATE);
     
-    _codefile.write_opcode (opcode::RETURN);
+//    _codefile.write_opcode (opcode::RETURN);
+
     
-    //    constant_index = _codefile.add_constant (4);
-    //    _codefile.write_opcode (opcode::CONSTANT);
-    //    _codefile.write_opcode (constant_index);
-    //
-    //    constant_index = _codefile.add_constant (3);
-    //    _codefile.write_opcode (opcode::CONSTANT);
-    //    _codefile.write_opcode (constant_index);
-    //
-    //    constant_index = _codefile.add_constant (2);
-    //    _codefile.write_opcode (opcode::CONSTANT);
-    //    _codefile.write_opcode (constant_index);
-    
-    //    constant_index = _codefile.add_constant (3);
-    //    _codefile.write_opcode (opcode::CONSTANT);
-    //    _codefile.write_opcode (constant_index);
-    
-    
-    
-    
-    //    _codefile +=
-    
-    
-    //    _codefile += opcode::NEGATE;
-    
-    //    constant = _codefile += 4;
-    ////    cout << constant << endl;
-    //    _codefile += opcode::CONSTANT;
-    //    _codefile += constant;
-    //
-    //    _codefile += opcode::RETURN;
-    
-    
-    //
-    //
-    //    _codefile += opcode::NEGATE;
-    //
-    //    _codefile += 3;
-    //    _codefile += opcode::CONSTANT;
-    //
-    //
-    //    _codefile += opcode::NEGATE;
-    ////    _codefile += 4;
-    //
-    ////    _codefile += opcode::NEGATE;
-    ////    _codefile += 4;
-    //    _codefile += opcode::RETURN;
-    
-    virtual_machine _vm {_codefile};
-    _vm.run();
+//    virtual_machine _vm {_codefile};
+//    _vm.run();
     
     
     //    cout << disassembler {_codefile} << endl;

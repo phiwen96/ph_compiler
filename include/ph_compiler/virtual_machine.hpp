@@ -2,18 +2,20 @@
 //#include "codefile.hpp"
 #include "opcode.hpp"
 #include "version.hpp"
+#include "compiler.hpp"
 
 //using version = version <1, 0, 0>;
 
 
 using namespace std;
 
-enum struct result
+enum struct interpret_result
 {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR
 };
+
 
 
 
@@ -33,11 +35,13 @@ struct virtual_machine
     
     
     
-    codefile_type & _code_file;
+    codefile_type * _code_file;
     opcode_type * _current_opcode;
     
     constant_type _stack [MAX_STACK];
     constant_type * _stack_top;
+    
+    interpret_result _result;
     
     
     auto reset_stack () -> void
@@ -62,19 +66,36 @@ struct virtual_machine
     }
 
     
+    operator interpret_result () {
+        return _result;
+    }
     
-    virtual_machine (codefile & code_file) : _code_file {code_file}
+    virtual_machine (codefile & code_file) : _code_file {&code_file}
     {
-        _current_opcode = _code_file.begin();
+        _current_opcode = _code_file->begin();
         _stack_top = _stack;
+    }
+    
+    virtual_machine () //: _code_file {code_file}
+    {
+//        'compiler c {source};
+//        _result = interpret_result::INTERPRET_OK;'
+    }
+    
+    
+    
+    auto interpret (char const* source) -> interpret_result
+    {
+        compiler {}.compile (source);
+        return interpret_result::INTERPRET_OK;
     }
     
    
     
-    auto run () -> result
+    auto run () -> interpret_result
     {
 #define READ_BYTE (*_current_opcode++)
-#define READ_CONSTANT (_code_file.constants.constants [READ_BYTE])
+#define READ_CONSTANT (_code_file -> constants.constants [READ_BYTE])
         for (;;)
         {
             uint_fast8_t instruction;
@@ -85,7 +106,7 @@ struct virtual_machine
                 {
                     cout << "return " << top () << endl;
                     pop ();
-                    return result::INTERPRET_OK;
+                    return interpret_result::INTERPRET_OK;
                 }
                     
                 case opcode::CONSTANT:
@@ -127,9 +148,11 @@ struct virtual_machine
                     
                 default:
                 {
-                    return result::INTERPRET_COMPILE_ERROR;
+                    return interpret_result::INTERPRET_COMPILE_ERROR;
                 }
             }
         }
     }
+#undef READ_BYTE
+#undef READ_CONSTANT
 };
